@@ -21,12 +21,9 @@
 <script setup>
 import env from "@/env.js";
 import { v4 as uuidv4 } from "uuid";
-
 import { ref, onMounted } from "vue";
 import { notify } from "notiwind";
-
 import Socket from "@/components/Socket.vue";
-  
 
 let models = ref([
 {  concurrentInstances: 20, provider: 'openAi', maxTokens: 128000, per1kInput: 0.01, per1kOutput: 0.03, model: "gpt-4-1106-preview", name: {en:"OpenAI GPT-4 Turbo (128k)", fr:"OpenAI GPT-4 Turbo (128k)"}  },
