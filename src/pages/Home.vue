@@ -1,6 +1,7 @@
 <template>
   <div class="flex flex-col min-h-screen overflow-hidden">
-    Welcome to OSAIL-LIASO
+
+
 
     <Socket v-show="true" 
     :sessionId="prompt.sessionId" 
@@ -13,8 +14,10 @@
     :temperature="prompt.temperature"
     >
     </Socket>
+    
+    <PersonalityFramework/>
 
-    <button @click = "prompt.trigger= !prompt.trigger">Click me</button>
+
   </div>
 </template>
 
@@ -24,6 +27,8 @@ import { v4 as uuidv4 } from "uuid";
 import { ref, onMounted } from "vue";
 import { notify } from "notiwind";
 import Socket from "@/components/Socket.vue";
+
+import PersonalityFramework from '@/components/PersonalityFramework.vue';
 
 let models = ref([
 {  concurrentInstances: 20, provider: 'openAi', maxTokens: 128000, per1kInput: 0.01, per1kOutput: 0.03, model: "gpt-4-1106-preview", name: {en:"OpenAI GPT-4 Turbo (128k)", fr:"OpenAI GPT-4 Turbo (128k)"}  },
@@ -42,7 +47,6 @@ let prompt = ref({
 });
 
 onMounted(() => {
-  // getStats();
-  // getPersonas();
+
 });
 </script>

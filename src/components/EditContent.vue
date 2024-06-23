@@ -24,7 +24,7 @@
   import { ref,  onMounted, watch, toRef, nextTick, onUnmounted } from 'vue';
   import MarkdownIt from 'markdown-it';
   
-  const props = defineProps(['content']);
+  const props = defineProps({content:{type:String, default:""}});
   const content = toRef(props, 'content');
   const emit = defineEmits();
   
