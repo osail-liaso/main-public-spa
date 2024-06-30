@@ -5,6 +5,10 @@ import ImportMetaEnvPlugin from '@import-meta-env/unplugin'
  
 export default defineConfig({
   server: {
+
+    
+      host: '0.0.0.0',
+    
     cors: true,
     strictPort: true,
     headers: {
@@ -24,6 +28,7 @@ export default defineConfig({
 
   ],
 
+  
   resolve: {
     alias: [{ find: '@', replacement: '/src' }],
     dedupe: ['vue']
