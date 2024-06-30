@@ -76,7 +76,7 @@ onMounted(() => {
   // getLexicon();
   // recallTokens();
   websocketConnection()
-  // setDark(true)
+  setDark(false)
 })
 
 

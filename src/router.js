@@ -3,6 +3,8 @@ import Home from '@/pages/Home.vue'
 import Join from '@/pages/Join.vue'
 import Login from '@/pages/Login.vue'
 
+import PromptPainter from '@/components/PromptPainter.vue'
+
 const routerHistory = createWebHistory()
 
 const router = createRouter({
@@ -21,6 +23,11 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: Home
+    },
+    {
+      path: '/tools/promptPainter',
+      name: 'promptPainter',
+      component: PromptPainter
     },
     {
  
