@@ -1,71 +1,73 @@
 <template>
   <EditableHighlightText
-    :text="text"
-    :highlightsProp="highlights"
+    :textSegments="textSegments"
     @update="handleTextUpdate"
-    @updateHighlights="updateHighlights"
   />
 
 
-  <button @click="changeText">Change the text</button>
-
-
-  {{ text }}
-
-
-
-  <br/>
-
-  {{ highlights }}
+  <DataTable 
+    :value="textSegments" 
+    editMode="cell" 
+    @cell-edit-complete="onCellEditComplete"
+    :pt="{
+      table: { style: 'min-width: 50rem' },
+      column: {
+        bodycell: ({ state }) => ({
+          class: [{ 'pt-0 pb-0': state['d_editing'] }]
+        })
+      }
+    }"
+  >
+    <Column field="text" header="Text" style="width: 70%">
+      <template #body="{ data }">
+        {{ data.text }}
+      </template>
+      <template #editor="{ data }">
+        <InputText v-model="data.text" autofocus />
+      </template>
+    </Column>
+    <Column field="highlighted" header="Highlighted" style="width: 30%">
+      <template #body="{ data }">
+        {{ data.highlighted }}
+      </template>
+      <template #editor="{ data }">
+        <InputSwitch v-model="data.highlighted" />
+      </template>
+    </Column>
+  </DataTable>
 </template>
 
 <script setup>
-import { ref, shallowRef } from 'vue';
+import { ref, computed } from 'vue';
 import EditableHighlightText from '@/components/EditableHighlightText.vue';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import InputText from 'primevue/inputtext';
+import InputSwitch from 'primevue/inputswitch';
 
-const text = ref('Your initial text here');
-const highlights = shallowRef([]);
+const textSegments = ref([{ text: 'Your initial text here', highlighted: false }, { text: 'And some more text here', highlighted: true }]);
+const cursor = ref(null);
 
-function handleTextUpdate(updatedText) {
-  text.value = updatedText;
+function handleTextUpdate(newSegments) {
+  textSegments.value = newSegments;
 }
 
-// function handleHighlightsUpdate(newHighlights) {
-//   // highlights.value = newHighlights;
-//   // console.log("newHighlights", newHighlights);
-// }
-
-
-function updateHighlights(newHighlights) {
-  // Use Object.is for deep comparison
-  if (!Object.is(JSON.stringify(highlights.value), JSON.stringify(newHighlights))) {
-    highlights.value = newHighlights;
+function onCellEditComplete(event) {
+  const { data, newValue, field } = event;
+  const index = textSegments.value.findIndex(segment => segment === data);
+  if (index !== -1) {
+    textSegments.value[index][field] = newValue;
   }
-
-  
 }
 
-function changeText()
-{
-  text.value = "Your initialsdfsdfdsal text here"
-}
-function removeHighlight(id) {
-  highlights.value = highlights.value.filter(h => h.id !== id);
+function updateCursor(c) {
+  cursor.value = c;
+  console.log("Cursor", c);
 }
 
-function addHighlight() {
-  const newHighlight = {
-    id: Date.now().toString(),
-    startOffset: 0,
-    endOffset: 5,
-    selectedText: text.value.slice(0, 5),
-    rects: [{
-      top: 0,
-      left: 0,
-      width: 50,
-      height: 20
-    }]
-  };
-  highlights.value = [...highlights.value, newHighlight];
+
+function handleTextUpdate(newSegments) {
+  textSegments.value = newSegments;
 }
+
 </script>

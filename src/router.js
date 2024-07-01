@@ -3,7 +3,7 @@ import Home from '@/pages/Home.vue'
 import Join from '@/pages/Join.vue'
 import Login from '@/pages/Login.vue'
 
-import PromptPainter from '@/components/PromptPainter.vue'
+import PromptPainter from '@/components/PromptPainterV2.vue'
 
 const routerHistory = createWebHistory()
 
