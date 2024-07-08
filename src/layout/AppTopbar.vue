@@ -88,6 +88,8 @@ const isOutsideClicked = (event) => {
                 <i class="pi pi-cog"></i>
                 <span>Settings</span>
             </button>
+            <Button label="FR" class="p-button border-none ml-5 font-light text-white  bg-blue-500"></Button>
+
         </div>
     </div>
 </template>

@@ -46,12 +46,7 @@ function toLogin()
                                 <span>Features</span>
                             </a>
                         </li>
-                        <li>
-                            <a @click="smoothScroll('#highlights')" class="flex m-0 md:ml-5 px-0 py-3 text-900 font-medium line-height-3 p-ripple" v-ripple>
-                                <span>Highlights</span>
-                            </a>
-                        </li>
-      
+       
                     </ul>
                     <div class="flex justify-content-between lg:block border-top-1 lg:border-top-none surface-border py-3 lg:py-0 mt-3 lg:mt-0">
                         <Button @click = "toLogin" label="Login" class="p-button-text p-button-rounded border-none font-light line-height-2 text-blue-500"></Button>
@@ -71,8 +66,8 @@ function toLogin()
                     <p class="font-normal text-2xl line-height-3 md:mt-3 text-gray-700">The Open Source AI Laboratory / Le laboratoire d'intelligence artificielle source ouverte</p>
                     <Button @click = "toLogin" label="Let's Go!" class="p-button-rounded text-xl border-none mt-5 bg-blue-500 font-normal text-white line-height-3 px-3"></Button>
                 </div>
-                <div class="flex justify-content-center md:justify-content-end" style = "min-height:150px">
-                    <!-- <img src="/demo/images/landing/screen-1.png" alt="Hero Image" class="w-9 md:w-auto" /> -->
+                <div class="flex justify-content-center md:justify-content-end" style = "overflow:hidden;min-height:150px; max-height:300px">
+                    <img src="/images/robot2.png" alt="Hero Image" style = "max-width:600px; height:auto;border-radius:10px;  object-fit:cover; object-position:center; " class="w-4 md:w-auto" />
                 </div>
             </div>
 

@@ -1,7 +1,6 @@
 import env from "@/env.js"
 import { ref, onMounted, onUnmounted } from 'vue'
 import configuredAxios from "@/utils/axios.js"
-import { notify } from "notiwind"
 
 let adminModels = ref([]); //From the database
 let selectedModel = ref(null) //the actively selected persona
@@ -60,14 +59,11 @@ export function useModels() {
             var params = { models }
             var response = await configuredAxios.post(env.API_URL + '/models', params);
             console.log("Created Model(s)", response.data.payload)
-            notify({ group: "success", title: "Success", text: "Model(s) created successfully" }, 4000) // 4s
             getModels();
 
         }
         catch (error) {
             console.log("Error", error)
-            notify({ group: "failure", title: "Error", text: "Error creating Model. Try again" }, 4000) // 4s
-
         }
     }
 
@@ -78,14 +74,11 @@ export function useModels() {
             var params = {  models }
             var response = await configuredAxios.patch(env.API_URL + '/models', params);
             console.log("Updated Model(s)", response.data.payload)
-            notify({ group: "success", title: "Success", text: "Model(s) updated successfully" }, 4000) // 4s
             getModels();
 
         }
         catch (error) {
             console.log("Error", error)
-            notify({ group: "failure", title: "Error", text: "Error updating Model. Try again" }, 4000) // 4s
-
         }
     }
 
@@ -94,12 +87,10 @@ export function useModels() {
             var params = {  modelUuids }
             var response = await configuredAxios.post(env.API_URL + '/models/delete', params);
             console.log("Deleted Model(s)", response.data.payload);
-            notify({ group: "success", title: "Success", text: "Model(s) deleted successfully" }, 4000) // 4s
             getModels();
         }
         catch (error) {
             console.log("Error", error)
-            notify({ group: "failure", title: "Error", text: "Error deleting Model(s). Try again" }, 4000) // 4s
         }
     }
 
