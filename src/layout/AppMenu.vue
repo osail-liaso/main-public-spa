@@ -54,13 +54,13 @@ import { activeInteractionTools} from '@/assets/interactionTools.js';
             {
                 label: 'Web UI',
                 icon: 'pi pi-fw pi-search',
-                url: 'https://github.com/osail-laiso/main-public-spa',
+                url: 'https://github.com/osail-liaso/main-public-spa',
                 target: '_blank'
             },
             {
                 label: 'Server API',
                 icon: 'pi pi-fw pi-search',
-                url: 'https://github.com/osail-laiso/main-public-api',
+                url: 'https://github.com/osail-liaso/main-public-api',
                 target: '_blank'
             },
 
