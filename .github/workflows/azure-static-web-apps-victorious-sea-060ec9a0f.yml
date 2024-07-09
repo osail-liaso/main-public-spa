@@ -15,10 +15,10 @@ jobs:
     runs-on: ubuntu-latest
     name: Build and Deploy Job
     env:
-      VITE_SELF: https://victorious-sea-060ec9a0f.5.azurestaticapps.net
-      VITE_API_URL: https://osail-liaso-api.azurewebsites.net/
-      VITE_WEBSOCKET_URL: wss://osail-liaso-api.azurewebsites.net/
-      VITE_STORAGE_URL:
+      SELF: https://osail-liaso.com
+      API_URL: https://api.osail-liaso.com/
+      WEBSOCKET_URL: wss://api.osail-liaso.com/
+      STORAGE_URL:
     steps:
       - uses: actions/checkout@v3
         with:
