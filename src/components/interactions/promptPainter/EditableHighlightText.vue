@@ -175,7 +175,7 @@ watch(
 
         const spanElement = contentElement.value.querySelector(`span[data-uuid="${newCursor.uuid}"]`);
         if (spanElement) {
-            console.log('Span Element');
+            console.log('Span Element', spanElement);
             spanElement.focus();
             setCursor(spanElement, newCursor.offset);
         }
@@ -204,15 +204,62 @@ function handleInput(event, uuid) {
     updateTextAndHighlights();
     updateCursorPosition();
 }
+// function setCursor(node, offset) {
+//     try
+//     {
+
+//     const range = document.createRange();
+//     const sel = window.getSelection();
+
+//     range.setStart(node, offset);
+//     range.collapse(true);
+
+//     sel.removeAllRanges();
+//     sel.addRange(range);
+//     }
+//     catch(error)
+//     {
+//         console.log("setCursor error", error)
+//     }
+// }
+
 function setCursor(node, offset) {
+  try {
+    // Ensure that we have a valid text node. If not, find the text node within the element.
+    if (node.nodeType !== Node.TEXT_NODE) {
+      // If the node has child nodes, find the first text node.
+      if (node.childNodes.length > 0) {
+        for (let i = 0; i < node.childNodes.length; i++) {
+          if (node.childNodes[i].nodeType === Node.TEXT_NODE) {
+            node = node.childNodes[i];
+            break;
+          }
+        }
+      } else {
+        // If there are no child nodes, create a text node and append it to the element.
+        node = document.createTextNode('');
+        node.appendChild(node);
+      }
+    }
+
+    // Ensure the offset is not greater than the text length
+    offset = Math.min(offset, node.textContent.length);
+
     const range = document.createRange();
     const sel = window.getSelection();
 
+    // Set the start position of the range to the specified character offset within the text node
     range.setStart(node, offset);
     range.collapse(true);
 
+    // Clear any existing selections and add the new range
     sel.removeAllRanges();
     sel.addRange(range);
+  } catch (error) {
+    console.log("setCursor error", error);
+  }
+
+  updateCursorPosition();
 }
 
 function handleKeyUp(event, uuid) {
@@ -519,23 +566,31 @@ function paintAction(action) {
     if (action == 'refine') {
         prompt = `
 
-    ##Rewrite this text following these instructions
+
+    # Rewrite this passage of text following the special instructions below
+    "${JSON.stringify({
+        text: props.textSegments[currentCursor.value.segmentIndex].text
+    })}"
+
+
+    # Special Instructions
+    ## In your rewrite, ensure you follow these special instructions very closely.
     ${specialInstructions.value}
 
-
-    ##Text to rewrite
-    "${JSON.stringify({
-        text: props.textSegments[currentCursor.value.segmentIndex].text
-    })}"
-
     
-    ##Here is the entire text as context. DO not reference anything other than the Text to rewrite
-    "${JSON.stringify({
-        text: props.textSegments[currentCursor.value.segmentIndex].text
-    })}"
-
-
+    
     `;
+
+        //Whole document reference
+        /*    
+    
+        ## Here is the entire text as context. DO not reference anything other than the Text to rewrite
+
+        ${props.textSegments.map((segment) => {
+        return JSON.stringify({ text: segment.text });
+    })}
+
+*/
     }
 
     emit('paintAction', { action: action, prompt: prompt });

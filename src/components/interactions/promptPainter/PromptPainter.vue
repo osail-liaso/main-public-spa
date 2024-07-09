@@ -74,6 +74,8 @@
                         @paintAction="handlePaintAction"
                     />
                 </div>
+                <Button @click="deleteSelectedSegment" class="mr-2"> Delete Selected Segment </Button>
+                <Button @click="mergeAllTextSegments"> Merge All Segments </Button>
 
                 <!-- {{ textSegments }} -->
             </div>
@@ -82,7 +84,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, nextTick } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
 import Socket from '@/components/common/Socket.vue';
 
@@ -310,12 +312,10 @@ function handlePaintAction({ action, prompt }) {
 
         if (action == 'refine') {
             segment.systemPrompt = `
-    Rewrite the text provided following the special instructions. Ensure you consider and follow each step provided. 
-
-    Do not reference the whole document JSON
+    Rewrite the passage of text provided following the special instructions. Ensure you consider and follow each step provided. 
     Never respond in JSON
     If there is a header or title, recreate it, otherwise do not provide a header in your response.
-    Never address the user, always stricktly just expand on the content
+    Never address the user, always stricktly just modify  the content based on the special instructions.
     `;
         }
 
@@ -423,6 +423,80 @@ function messageCompleteAccomplishment(segment, payload) {
 
 function messageErrorAccomplishment(segment, payload) {
     console.log('Error', payload);
+}
+
+function mergeAllTextSegments() {
+    // Concatenate all the text fields from the textSegments array
+    const mergedText = textSegments.value.map((segment) => segment.text).join('');
+
+    // Create a new object with the merged text, highlighted set to true, and an empty history array
+    const mergedSegment = {
+        uuid: uuidv4(),
+        text: mergedText,
+        highlighted: true,
+        active: true,
+        processing: false,
+        history: [],
+        specialInstructions: null,
+        messagePartial: null,
+        messageComplete: null,
+        messageError: null
+    };
+
+    // Reset the textSegments ref to an array containing just the merged segment
+    textSegments.value = [mergedSegment];
+
+    cursorSelect.value = {
+                uuid:mergedSegment.uuid,
+                segmentIndex:0,
+                offset:mergedSegment.text.length,
+                momentUpdated:new Date()
+            }
+
+}
+
+function deleteSelectedSegment() {
+    if (currentCursor?.value?.segmentIndex != null && currentCursor.value.segmentIndex >= 0) {
+        // Use splice to remove the item at the specified index
+
+        textSegments.value.splice(currentCursor.value.segmentIndex, 1);
+        if (!textSegments.value.length) {
+            const newSegment = {
+                uuid: uuidv4(),
+                text: 'A new segment...',
+                highlighted: true,
+                active: true,
+                processing: false,
+                history: [],
+                specialInstructions: null,
+                messagePartial: null,
+                messageComplete: null,
+                messageError: null
+            };
+            textSegments.value.push(newSegment);
+
+            cursorSelect.value = {
+                uuid:newSegment.uuid,
+                segmentIndex:0,
+                offset:newSegment.text.length,
+                momentUpdated:new Date()
+            }
+
+        }
+
+        nextTick(() => {
+            if (currentCursor.value.segmentIndex > 0 && textSegments.value.length) {
+                cursorSelect.value = JSON.parse(
+                    JSON.stringify({
+                        uuid: textSegments.value[currentCursor.value.segmentIndex - 1].uuid,
+                        segmentIndex: currentCursor.value.segmentIndex - 1,
+                        offset: textSegments.value[currentCursor.value.segmentIndex - 1].text.length,
+                        momentUpdated: new Date()
+                    })
+                );
+            }
+        });
+    }
 }
 </script>
 
