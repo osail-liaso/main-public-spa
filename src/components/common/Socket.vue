@@ -259,7 +259,7 @@ function stripHtmlTags(htmlString) {
 }
 </script>
 
-<style>
+<style scoped>
 .card {
   display: flex;
   border: 1px solid #ccc;
