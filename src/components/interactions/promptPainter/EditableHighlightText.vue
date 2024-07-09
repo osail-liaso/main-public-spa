@@ -619,3 +619,114 @@ function paintAction(action) {
   emit("paintAction", { action: action, prompt: prompt });
 }
 </script>
+<style scoped>
+
+
+.container {
+    /* padding: 20px; */
+    /* margin: 20px; */
+    font-family: "Roboto", sans-serif;
+    max-width: 80%;
+    margin: 20px auto;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+  }
+  
+  
+.content-wrapper {
+  position: relative;
+}
+
+.text-content {
+  /* min-height: 150px; */
+  /* padding: 20px; */
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  font-size: 18px;
+  line-height: 1.6;
+  color: #333;
+  outline: 1.5px solid rgba(100, 100, 100, 0); /* Thinner and more transparent outline */
+  outline-offset: 0; /* Increase the distance of the outline from the text */
+  /* background-color: rgba(200, 200, 200, 0.3); */
+}
+
+.highlight {
+  background-color: rgba(0, 255, 0, 0.1);
+}
+
+.text-content:focus {
+  outline: 0.5px solid rgba(100, 100, 100, 0.2); /* Thinner and more transparent outline */
+  outline-offset: 0; /* Increase the distance of the outline from the text */
+  outline-style: dotted;
+
+  /* background-color: rgba(200, 200, 200, 0.3); */
+  background-color: rgba(0, 200, 0, 0.1);
+}
+ 
+/* Ensure the Editor takes full height */
+:deep(.p-editor-container) {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+:deep(.p-editor-content) {
+  flex: 1;
+}
+
+:deep(.p-inputtext) {
+  padding: 0.75rem 1rem; /* Adjust these values as needed */
+  padding-top: 20px;
+}
+
+.control-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .button-row {
+    display: grid;
+    gap: 0.5rem;
+    width: 100%;
+  }
+  
+  /* This will create equal width columns based on the number of children */
+  .button-row {
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  }
+  
+  :deep(.button-row .p-button),
+  :deep(.button-row .p-inputtext) {
+    width: 100%;
+    margin: 0;
+  }
+  
+  :deep(.button-row .p-button) {
+    justify-content: center;
+  }
+  
+  :deep(.button-row .p-button .p-button-label) {
+    flex: 1 1 auto;
+    text-align: center;
+  }
+  
+  /* Responsive adjustment for smaller screens */
+  @media (max-width: 768px) {
+    .button-row {
+      grid-template-columns: 1fr;
+    }
+  }
+
+
+  .prompt-painter {
+    position: fixed; /* Fixed positioning relative to the viewport */
+    top: 100px; /* Align to the top of the viewport */
+    right: 0; /* Align to the right side (adjust as needed) */
+    width:25%;
+    z-index: 1000; /* Ensure it stays above other content */
+  }
+</style>

@@ -49,7 +49,7 @@
       <div class="grid">
         <div class="col-12 md:col-8 bg-white" v-show="true" v-if = "textSegments.length">
           <span class="w-full">
-            <label class="text-lg" for="accomplishment"
+            <label class="text-lg w-full" for="accomplishment"
               >What are we accomplishing today?</label
             >
             <Textarea
@@ -469,3 +469,48 @@ function messageCompleteAccomplishment(segment, payload) {
 
 
 </script>
+
+
+<style scoped>
+
+
+  .layout-wrapper {
+    display: flex;
+    min-height: 100vh;
+    /* padding-top: 20px; */
+  }
+  
+  .layout-main {
+    flex: 1;
+    padding: 1rem;
+  }
+
+.editable-container {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  background-color: #ffffff;
+  border-radius: 8px;
+  border: 2px solid #e0e0e0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  padding: 24px;
+  /* margin: 16px; */
+  transition: all 0.1s ease-in-out;
+  min-height:80px
+}
+
+.editable-container:hover {
+  border-color: #3B82F6; /* You can replace this with your primary color */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  /* transform: scale(1.01); */
+}
+
+.editable-container:focus {
+    border-color: #3B82F6; /* You can replace this with your primary color */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    /* transform: scale(1.01); */
+  }
+  
+  
+
+
+</style>
