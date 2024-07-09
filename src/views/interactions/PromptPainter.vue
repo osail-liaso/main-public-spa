@@ -6,7 +6,7 @@
 </template>
 
 <script setup>
-import PromptPainter from "@/components/interactions/promptPainter/promptPainter.vue";
+import PromptPainter from "@/components/interactions/promptPainter/PromptPainter.vue";
 
 
 </script>
