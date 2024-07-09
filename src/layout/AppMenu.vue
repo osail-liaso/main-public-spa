@@ -38,7 +38,7 @@ import { activeInteractionTools} from '@/assets/interactionTools.js';
     {
         label: 'Models',
         items: [
-        { label: 'Anthropic', icon: 'pi pi-fw pi-wrench', to: '/anthropic' },
+        { label: 'Anthropic', icon: 'pi pi-fw pi-wrench', to: '/models/anthropic' },
         { label: 'Mistral', icon: 'pi pi-fw pi-wrench', to: '/models/mistral' },
         { label: 'OpenAI', icon: 'pi pi-fw pi-wrench', to: '/models/openAi' },
         ],

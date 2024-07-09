@@ -10,7 +10,7 @@ const interactionTools = [
   {
     "version": "1",
     "systemName": "basicChat",
-    "path": "/interactionTools/chat",
+    "path": "/dashboard/interactions/basicchat",
     "icon": "pi pi-fw pi-comment",
     "menu": {
       "en": "Basic Chat",
@@ -38,7 +38,7 @@ const interactionTools = [
   {
     "version":"1",
     "systemName":"promptPainter",
-    "path":"/interactionTools/painter",
+    "path": "/dashboard/interactions/promptpainter",
     "icon":"pi pi-fw pi-palette",
     "menu": {
       "en": "Painter", // The sidebar menu name of the tool in English
@@ -66,7 +66,7 @@ const interactionTools = [
   {
     "version":"1",
     "systemName":"personalityBuilder",
-    "path":"/interactionTools/personality",
+    "path": "/dashboard/interactions/personalitybuilder",
     "icon":"pi pi-fw pi-pencil",
     "menu": {
       "en": "Personality Builder",

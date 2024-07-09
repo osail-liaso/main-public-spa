@@ -74,7 +74,7 @@ import { v4 as uuidv4 } from "uuid";
 import Slider from "primevue/slider";
 import Textarea from "primevue/textarea";
 import Button from "primevue/button";
-import Socket from "@/components/Socket.vue";
+import Socket from "@/components/common/Socket.vue";
 
 
 let models = ref([

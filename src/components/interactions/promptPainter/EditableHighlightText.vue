@@ -164,7 +164,6 @@
 
 <script setup>
 import { ref, watch, watchEffect, onMounted, nextTick } from "vue";
-import Socket from "@/components/Socket.vue";
 
 
 const props = defineProps({

@@ -72,15 +72,14 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, computed, watch } from "vue";
 import { v4 as uuidv4 } from "uuid";
-import { notify } from "notiwind";
 import MarkdownIt from "markdown-it";
 
 //Helper Functions
 import { extractData } from "@/utils/extractJsonAndCode.js";
 
 //Components
-import EditContent from "@/components/EditContent.vue";
-import MarkdownReveal from "@/components/MarkdownReveal.vue";
+import EditContent from "@/components/common/EditContent.vue";
+import MarkdownReveal from "@/components/common/MarkdownReveal.vue";
 
 //Composables
 import { useWebsockets } from "@/composables/useWebsockets.js";
@@ -169,7 +168,7 @@ watch(partialMessage, (newValue, oldValue) => {
 watch(errorMessage, (newValue, oldValue) => {
 
   if (!oldValue?.length && newValue?.length) {
-    notify({ group: "failure", title: "Error", text: newValue }, 8000); // 4s
+    console.log("Socket Error", errorMessage)
     emit("messageError");
     sessions.value[sessionId.value].errorMessage = "";
     processing.value = false;
@@ -248,16 +247,9 @@ async function copyToClipboard(text) {
   if (typeof text == "object") text = JSON.stringify(text);
   try {
     await navigator.clipboard.writeText(text);
-    notify(
-      { group: "success", title: "Success", text: "Content copied" },
-      4000
-    ); // 4s
-  } catch (err) {
-    notify(
-      { group: "failure", title: "Error", text: "Error. Please try again." },
-      4000
-    ); // 4s
-  }
+   } catch (err) {
+    console.log("Error copying", err)
+   }
 }
 
 function stripHtmlTags(htmlString) {

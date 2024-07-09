@@ -47,7 +47,7 @@
 
     <div class="layout-main">
       <div class="grid">
-        <div class="col-12 md:col-12 bg-white" v-show="true" v-if = "textSegments.length">
+        <div class="col-12 md:col-8 bg-white" v-show="true" v-if = "textSegments.length">
           <span class="w-full">
             <label class="text-lg" for="accomplishment"
               >What are we accomplishing today?</label
@@ -99,9 +99,9 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { v4 as uuidv4 } from "uuid";
-import Socket from "@/components/Socket.vue";
+import Socket from "@/components/common/Socket.vue";
 
-import EditableHighlightText from "@/components/EditableHighlightTextV2.vue";
+import EditableHighlightText from "@/components/interactions/promptPainter/EditableHighlightText.vue";
 import Sidebar from "primevue/sidebar";
 
 import InputText from "primevue/inputtext";

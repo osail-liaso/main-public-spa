@@ -20,6 +20,27 @@ const router = createRouter({
                     name: 'dashboard',
                     component: () => import('@/views/Dashboard.vue')
                 },
+
+
+                {
+                    path: '/dashboard/interactions/basicchat',
+                    name: 'basicchat',
+                    component: () => import('@/views/interactions/BasicChat.vue')
+                },
+
+                {
+                    path: '/dashboard/interactions/personalitybuilder',
+                    name: 'personalitybuilder',
+                    component: () => import('@/views/interactions/PersonalityBuilder.vue')
+                },
+
+                {
+                    path: '/dashboard/interactions/promptpainter',
+                    name: 'promptpainter',
+                    component: () => import('@/views/interactions/PromptPainter.vue')
+                },
+
+
                 {
                     path: '/dashboard/formlayout',
                     name: 'formlayout',
