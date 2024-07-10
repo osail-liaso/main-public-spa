@@ -578,17 +578,16 @@ function paintAction(action) {
     ${specialInstructions.value}
 
     
-    
+    ## Here is the entire text as context. DO not reference anything other than the passage of text above to rewrite
+        ${props.textSegments.map((segment) => {
+        return JSON.stringify({ text: segment.text });
+    })}
+
     `;
 
         //Whole document reference
         /*    
     
-        ## Here is the entire text as context. DO not reference anything other than the Text to rewrite
-
-        ${props.textSegments.map((segment) => {
-        return JSON.stringify({ text: segment.text });
-    })}
 
 */
     }
