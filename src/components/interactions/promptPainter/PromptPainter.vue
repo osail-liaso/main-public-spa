@@ -1,4 +1,5 @@
 <template>
+    <!-- The starting socket, separated from the textSegments -->
     <Socket
         v-if="accomplishmentPrompt.uuid"
         v-show="false"
@@ -13,9 +14,9 @@
         @messageComplete="(payload) => messageCompleteAccomplishment(accomplishmentPrompt, payload)"
         @messagePartial="(payload) => messagePartialAccomplishment(accomplishmentPrompt, payload)"
         @messageError="(payload) => messageErrorAccomplishment(accomplishmentPrompt, payload)"
-    >
-    </Socket>
+    />
 
+    <!-- Each socket for the text segments -->
     <template v-for="(segment, index) in textSegments" :key="'socket' + segment.uuid">
         <Socket
             v-show="false"
@@ -46,66 +47,73 @@
                         <label class="text-lg w-full" for="accomplishment">What are we accomplishing today?</label>
                         <Textarea id="accomplishment" v-model="accomplishmentPrompt.text" autoResize rows="auto" class="w-full p-inputtext-lg editable-container" autocomplete="off" />
                     </span>
-                    <!-- <span class="w-full">
-            <label class="text-lg" for="knowledge"
-              >What information can you share to get started?</label
-            >
-            <Textarea
-              id="knowledge"
-              v-model="knowledge"
-              autoResize
-              rows="auto"
-              class="w-full p-inputtext-lg editable-container"
-              autocomplete="off"
-            />
-          </span> -->
 
                     <Button @click="accomplishmentPrompt.trigger = !accomplishmentPrompt.trigger"> Let's Go! </Button>
                 </div>
+
+                <!-- Main interaction area / Painter Canvas-->
                 <div class="col-12 lg:col-12 mb-3 lg:mb-0">
+                    <p class="text-lg">Prompt Canvas</p>
                     <EditableHighlightText
+                        id="promptCanvas"
                         v-model:textSegments="textSegments"
                         :cursorSelect="cursorSelect"
+                        @changeSegmentSelected="changeSegmentSelected"
+                        @updateSegment="updateSegment"
                         @update:textSegments="handleTextSegmentsUpdate"
                         @cursorUpdate="handleCursorUpdate"
-                        @changeSegmentSelected="changeSegmentSelected"
                         @splitSegment="handleSplitSegment"
-                        @updateSegment="updateSegment"
                         @paintAction="handlePaintAction"
-                    />
-                </div>
-                <Button @click="deleteSelectedSegment" class="mr-2"> Delete Selected Segment </Button>
-                <Button @click="mergeAllTextSegments"> Merge All Segments </Button>
+                        @undoHistory="handleUndoHistory"
+                        @redoHistory="handleRedoHistory"
+                        @blurUpdate="handleBlurUpdate"
+                        @toggleComments="handleToggleComments"
+                        @deleteComments="handleDeleteComments"
+                    >
+                        <!-- Canvas controls and features -->
+                        <!-- {{ textSegments }} -->
 
-                <!-- {{ textSegments }} -->
+                        <div class="button-row mt-1">
+                            <Button @click="copyAllTextSegments" class="mr-2"> Copy All Segments </Button>
+                            <Button @click="deleteSelectedSegment" severity="warning" class="mr-2"> Delete Selected Segment </Button>
+                            <Button @click="mergeAllTextSegments" severity="warning"> Merge All Segments </Button>
+                        </div>
+                    </EditableHighlightText>
+                </div>
             </div>
         </div>
     </div>
 </template>
 
 <script setup>
+//Vue and other libraries
 import { ref, computed, onMounted, nextTick } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
-import Socket from '@/components/common/Socket.vue';
 
-import EditableHighlightText from '@/components/interactions/promptPainter/EditableHighlightText.vue';
+//Primevue components
 import Sidebar from 'primevue/sidebar';
-
-import InputText from 'primevue/inputtext';
 import Textarea from 'primevue/textarea';
 import Button from 'primevue/button';
-import Slider from 'primevue/slider';
+import { useToast } from 'primevue/usetoast';
 
-import DataTable from 'primevue/datatable';
-import Column from 'primevue/column';
-import InputSwitch from 'primevue/inputswitch';
+//Helper Functions
+import { extractData } from '@/utils/extractJsonAndCode.js';
 
+//Custom OSAIL components
+import Socket from '@/components/common/Socket.vue';
+import EditableHighlightText from '@/components/interactions/promptPainter/EditableHighlightText.vue';
+
+const toast = useToast();
 const sidebarVisible = ref(false);
-const accomplishment = ref('');
-const knowledge = ref('');
-const editableContent = ref('');
-const sliderValue = ref(0);
 const autoEnhance = ref(false);
+
+const textSegments = ref([]);
+const textSegmentSelected = ref(null);
+const cursorSelect = ref({ segmentIndex: 0, offset: 0 });
+const currentCursor = ref({ segmentIndex: 0, offset: 0 });
+const accomplishmentPrompt = ref({});
+
+//Replace with adminModels and selectedModel
 let models = ref([
     {
         concurrentInstances: 20,
@@ -127,58 +135,53 @@ let models = ref([
     }
 ]);
 
-const defaultTextSegment = {
-    uuid: '',
-    text: '',
-    highlighted: false,
-    processing: false,
-    history: [], //A history of all the previous texts, in order, and on the date and time the change was made, and by whom (human or AI)
-    trigger: false,
-    systemPrompt: null,
-    userPrompt: null,
-    messagePartial: '',
-    messageComplete: '',
-    messageError: '',
-    active: true
-};
+onMounted(() => {
+    //Create the new segments to start off the app
+    textSegments.value.push(createNewSegment('\u200B', true));
+    addHistory(textSegments.value[textSegments.value.length - 1], 'user');
 
-const textSegments = ref([]);
-const textSegmentSelected = ref(null);
-const cursorSelect = ref({ segmentIndex: 0, offset: 0 });
-const currentCursor = ref({ segmentIndex: 0, offset: 0 });
-const accomplishmentPrompt = ref({});
-function handleCursorUpdate(cursorInfo) {
-    textSegments.value.forEach((segment) => {
-        segment.highlighted = false;
-    });
+    accomplishmentPrompt.value = createNewSegment('', false);
+});
 
-    textSegments.value[cursorInfo.segmentIndex].highlighted = true;
-    currentCursor.value = cursorInfo;
-    // You can perform any additional logic here based on the cursor position
+// Helper functions - Create new segment with all the standard attributes
+function createNewSegment(text = '', highlighted = false) {
+    return {
+        //Segment controls
+        uuid: uuidv4(),
+        text: text,
+        highlighted: highlighted,
+
+        //History
+        history: [],
+        historyIndex: -1, //No history, so temporary negative index
+
+        //Comments
+        comments: [], //User or auto generated comments in this format {role:"user", text:'comment 1'}, {role:"system",text:'comment 2'}
+        showComments: false, //Whether to the comments are being rendered or not
+
+        //Socket Controls
+        action: null, //Track the last action used
+        trigger: false,
+        systemPrompt: null,
+        userPrompt: null,
+        specialInstructions: null,
+        messagePartial: null,
+        messageComplete: null,
+        messageError: null,
+
+        //Status of the segment
+        processing: false,
+        active: true
+    };
 }
 
-onMounted(() => {
-    let newSegment = JSON.parse(JSON.stringify(defaultTextSegment));
-    newSegment.uuid = uuidv4();
-    newSegment.text = '\u200B';
-    newSegment.highlighted = true;
-    textSegments.value.push(newSegment);
-
-    accomplishmentPrompt.value = JSON.parse(JSON.stringify(defaultTextSegment));
-    accomplishmentPrompt.value.uuid = uuidv4();
-
-    //  newSegment = JSON.parse(JSON.stringify(defaultTextSegment))
-    // newSegment.uuid = uuidv4();
-    // newSegment.text = "\n\nHere is the second section."
-    // newSegment.highlighted = false;
-    // textSegments.value.push(newSegment)
-
-    // newSegment = JSON.parse(JSON.stringify(defaultTextSegment))
-    // newSegment.uuid = uuidv4();
-    // newSegment.text = "\n\nHere is the third section."
-    // newSegment.highlighted = false;
-    // textSegments.value.push(newSegment)
-});
+function getSegmentFromUuid(uuid) {
+    if (uuid) {
+        const currentSegment = textSegments.value.find((s) => s.uuid === uuid);
+        if (currentSegment) return currentSegment;
+        else return null;
+    }
+}
 
 //Add a new segment after
 //Add a new segment before
@@ -187,20 +190,24 @@ function changeSegmentSelected(index) {
     textSegmentSelected.value = textSegments.value[index];
 }
 
-// function handleTextSegmentsUpdate(event) {
-//   const { textSegments, index } = event;
-//   textSegments.value.splice(index, 1, ...textSegments);
-// }
+function updateSegment({ index, newValue }) {
+    console.log(index, newValue);
+    console.log(textSegments.value);
+    textSegments.value[index].text = newValue;
+}
 
 function handleTextSegmentsUpdate(updatedSegments) {
     // console.log("Segment to update", updatedSegments)
     textSegments.value = updatedSegments;
 }
 
-function updateSegment({ index, newValue }) {
-    console.log(index, newValue);
-    console.log(textSegments.value);
-    textSegments.value[index].text = newValue;
+function handleCursorUpdate(cursorInfo) {
+    textSegments.value.forEach((segment) => {
+        segment.highlighted = false;
+    });
+
+    textSegments.value[cursorInfo.segmentIndex].highlighted = true;
+    currentCursor.value = cursorInfo;
 }
 
 function handleSplitSegment({ uuid, index, cursorIndex, splitType, atEndOfSegment, selectionRange }) {
@@ -213,20 +220,6 @@ function handleSplitSegment({ uuid, index, cursorIndex, splitType, atEndOfSegmen
 
     const isLastSegment = index === textSegments.value.length - 1;
     let newSegments = [...textSegments.value];
-
-    // Helper functions
-    const createNewSegment = (text, highlighted = false) => ({
-        uuid: uuidv4(),
-        text: text,
-        highlighted: highlighted,
-        active: true,
-        processing: false,
-        history: [],
-        specialInstructions: null,
-        messagePartial: null,
-        messageComplete: null,
-        messageError: null
-    });
 
     const updateCursorSelect = (segment, segmentIndex, offset) => {
         cursorSelect.value = {
@@ -250,8 +243,14 @@ function handleSplitSegment({ uuid, index, cursorIndex, splitType, atEndOfSegmen
             const selectedText = segmentToSplit.text.substring(selectionRange.start, selectionRange.end);
             const afterSelection = segmentToSplit.text.substring(selectionRange.end);
 
+            //new segments
             const newSegmentSelected = createNewSegment(selectedText, true);
             const segmentsToInsert = [beforeSelection ? createNewSegment(beforeSelection) : null, newSegmentSelected, afterSelection ? createNewSegment(afterSelection) : null].filter(Boolean); // Remove null entries if they exist
+
+            //Add histories for created items
+            segmentsToInsert.forEach((segment) => {
+                addHistory(segment, 'user');
+            });
 
             newSegments.splice(index, 1, ...segmentsToInsert);
             // Update cursorSelect to the new isolated segment
@@ -261,12 +260,21 @@ function handleSplitSegment({ uuid, index, cursorIndex, splitType, atEndOfSegmen
             // Split operation
             const beforeCursor = segmentToSplit.text.substring(0, cursorIndex);
             const afterCursor = segmentToSplit.text.substring(cursorIndex);
+
+            //Create 2 segments
             const newSegmentAfter = createNewSegment(afterCursor, true);
-            newSegments.splice(index, 1, createNewSegment(beforeCursor), newSegmentAfter);
+            addHistory(newSegmentAfter, 'user');
+
+            const newSegmentBefore = createNewSegment(beforeCursor);
+            addHistory(newSegmentBefore, 'user');
+
+            newSegments.splice(index, 1, newSegmentBefore, newSegmentAfter);
             updateCursorSelect(newSegmentAfter, index + 1, 0);
         } else if (atEndOfSegment && isLastSegment) {
             // Add a new blank segment at the end of the last segment
             const newSegment = createNewSegment('\n\r', true);
+            addHistory(newSegment, 'user');
+
             newSegments.push(newSegment);
             updateCursorSelect(newSegment, newSegments.length - 1, 1);
         }
@@ -277,8 +285,12 @@ function handleSplitSegment({ uuid, index, cursorIndex, splitType, atEndOfSegmen
 }
 
 function handlePaintAction({ action, prompt }) {
+    let socketAction = true;
     if (currentCursor?.value) {
         let segment = textSegments.value[currentCursor.value.segmentIndex];
+
+        //Add history for the item.
+        addHistory(segment, 'system');
 
         if (action == 'expand') {
             segment.systemPrompt = `
@@ -337,9 +349,43 @@ function handlePaintAction({ action, prompt }) {
     })}`;
         }
 
-        segment.userPrompt = prompt;
-        segment.processing = true;
-        segment.trigger = !segment.trigger;
+        if (action == 'critique') {
+            segment.systemPrompt = `
+                Rewrite the text provided following instructions in the prompt. 
+                Do not repeat other elements of the whole document; this is just for context.
+                If there is a header or title, recreate it, otherwise do not provide a header in your response.
+                Never address the user, always stricktly just critique the text provided in the format specified.
+            `;
+        }
+
+        if (action == 'applyComment') {
+            segment.systemPrompt = `
+                Attempt to integrate  the comment provided.
+                Rewrite the text provided to make it the best version possible based on the comment.
+                Never address the user, always stricktly just critique the text provided in the format specified.
+            `;
+        }
+
+        if (action == 'applyAllComments') {
+            segment.systemPrompt = `
+                
+                Attempt to integrate all the comments in the comments JSON completely.
+                Rewrite the text provided to make it the best version possible with each comment integrated.
+                Never address the user, always stricktly just critique the text provided in the format specified.
+            `;
+
+            //Reset the comments
+            segment.comments = [];
+        }
+
+        //Maybe some actions don't trigger a socket
+        //Future use
+        if (socketAction) {
+            segment.userPrompt = prompt;
+            segment.processing = true;
+            segment.action = action;
+            segment.trigger = !segment.trigger;
+        }
 
         // console.log("segment to trigger", segment);
     }
@@ -349,18 +395,119 @@ function handlePaintAction({ action, prompt }) {
     }
 }
 
+//Updates
+
+function addHistory(segment, role) {
+    //Add to the history of the segment
+    //Don't create a history
+    if (segment.historyIndex == -1 || segment.text != segment.history[segment.historyIndex].text) {
+        segment.history.push({
+            role: role,
+            comments: JSON.parse(JSON.stringify(segment.comments)),
+            text: segment.text,
+            momentUpdated: new Date()
+        });
+        segment.historyIndex = segment.history.length - 1;
+    }
+}
+
+function handleUndoHistory(segmentUuid) {
+    let segment = getSegmentFromUuid(segmentUuid);
+    //Can go backward
+    if (segment?.historyIndex > 0) {
+        segment.historyIndex--;
+        segment.text = segment.history[segment.historyIndex].text;
+        segment.comments = segment.history[segment.historyIndex].comments;
+    }
+}
+
+function handleRedoHistory(segmentUuid) {
+    let segment = getSegmentFromUuid(segmentUuid);
+    //Can go forward
+    if (segment?.historyIndex < segment.history.length - 1) {
+        segment.historyIndex++;
+        segment.text = segment.history[segment.historyIndex].text;
+        segment.comments = segment.history[segment.historyIndex].comments;
+    }
+}
+
+function handleToggleComments(segmentUuid) {
+    let segment = getSegmentFromUuid(segmentUuid);
+    segment.showComments = !segment.showComments;
+}
+
+function handleBlurUpdate(segmentUuid) {
+    let segment = getSegmentFromUuid(segmentUuid);
+    if (segment) {
+        //Initialize the array
+        if (segment?.history?.legnth === 0 || segment.historyIndex == -1) {
+            addHistory(segment, 'user');
+        } else {
+            //Only add if the text is different
+            if (segment.text !== segment.history[segment.historyIndex].text) {
+                addHistory(segment, 'user');
+            }
+            //Compare the text in the selected history and then if there is a difference
+            // if (segment.text !== segment.history[segment.historyIndex].text) {
+            // console.log('dont add new!', segment.historyIndex)
+            // segment.history[segment.historyIndex].text = segment.text;
+            // segment.momentUpdated = new Date();
+            // }
+        }
+    }
+}
+
+function handleDeleteComments(commentsArray) {
+    //Delete out the segments
+    commentsArray.forEach((item) => {
+        let segment = getSegmentFromUuid(item.segment.uuid);
+        segment.comments = segment.comments.filter((comment) => {
+            return comment.uuid != item.comment.uuid;
+        });
+    });
+}
+
 function messagePartial(segment, payload) {
     if (payload?.message?.length) {
-        segment.messagePartial = payload.message;
-        segment.processing = true;
+        let messageTextActions = ['expand', 'contract', 'refine', 'applyComment', 'applyAllComments'];
+        if (messageTextActions.includes(segment.action)) {
+            segment.messagePartial = payload.message;
+            segment.processing = true;
+        }
     }
 }
 
 function messageComplete(segment, payload) {
     if (payload?.message?.length) {
-        segment.text = payload.message + '\n';
-        segment.messagePartial = null;
-        segment.processing = false;
+        //Commit the current segment to history
+
+        //Depending on the types of actions, update different parts of the text segment
+        let messageTextActions = ['expand', 'contract', 'refine', 'applyComment', 'applyAllComments'];
+        let messageCommentActions = ['critique'];
+
+        if (messageTextActions.includes(segment.action)) {
+            //Now overwrite the text
+            segment.text = payload.message + '\n';
+            segment.messagePartial = null;
+            segment.processing = false;
+            addHistory(segment, 'system');
+        }
+
+        if (messageCommentActions.includes(segment.action)) {
+            //Now overwrite the comments if return a JSON
+            segment.processing = false;
+
+            //Overwrite comments
+            let json = extractData(payload.message);
+            console.log('JSON returned', json);
+
+            if (json?.json?.[0]?.length) {
+                json.json[0].forEach((comment) => {
+                    comment.uuid = uuidv4();
+                }); //give each a unique identifier
+                segment.comments = json.json[0];
+            }
+        }
     }
 
     if (autoEnhance.value) {
@@ -407,17 +554,25 @@ function messageError(segment, payload) {
 }
 
 function messagePartialAccomplishment(segment, payload) {
-    if (payload?.message?.length) {
-        textSegments.value[0].messagePartial = payload.message;
-        textSegments.value[0].processing = true;
+    if (currentCursor?.value.segmentIndex < textSegments.value.length) {
+        if (payload?.message?.length) {
+            textSegments.value[currentCursor.value.segmentIndex].messagePartial = payload.message;
+            textSegments.value[currentCursor.value.segmentIndex].processing = true;
+        }
     }
 }
 
 function messageCompleteAccomplishment(segment, payload) {
-    if (payload?.message?.length) {
-        textSegments.value[0].text = payload.message + '\n';
-        textSegments.value[0].messagePartial = null;
-        textSegments.value[0].processing = false;
+    //Make sure the currentCursor is accurate
+    if (currentCursor?.value.segmentIndex < textSegments.value.length) {
+        if (payload?.message?.length) {
+            textSegments.value[currentCursor.value.segmentIndex].text = payload.message + '\n';
+            textSegments.value[currentCursor.value.segmentIndex].messagePartial = null;
+            textSegments.value[currentCursor.value.segmentIndex].processing = false;
+
+            //Update the history for the subject
+            addHistory(textSegments.value[currentCursor.value.segmentIndex], 'system');
+        }
     }
 }
 
@@ -425,34 +580,37 @@ function messageErrorAccomplishment(segment, payload) {
     console.log('Error', payload);
 }
 
+async function copyAllTextSegments() {
+    let allText = textSegments.value.map((seg) => {
+        return seg.text;
+    });
+
+    try {
+        await navigator.clipboard.writeText(allText);
+        toast.add({ severity: 'success', summary: 'All segments copied', detail: textSegments.value.length + ' segments copied to the clipboard.', life: 3000 });
+    } catch (err) {
+        console.log('Error copying', err);
+    }
+}
+
 function mergeAllTextSegments() {
     // Concatenate all the text fields from the textSegments array
     const mergedText = textSegments.value.map((segment) => segment.text).join('');
 
     // Create a new object with the merged text, highlighted set to true, and an empty history array
-    const mergedSegment = {
-        uuid: uuidv4(),
-        text: mergedText,
-        highlighted: true,
-        active: true,
-        processing: false,
-        history: [],
-        specialInstructions: null,
-        messagePartial: null,
-        messageComplete: null,
-        messageError: null
-    };
+
+    let mergedSegment = createNewSegment(mergedText, true);
+    addHistory(mergedSegment, 'user');
 
     // Reset the textSegments ref to an array containing just the merged segment
     textSegments.value = [mergedSegment];
 
     cursorSelect.value = {
-                uuid:mergedSegment.uuid,
-                segmentIndex:0,
-                offset:mergedSegment.text.length,
-                momentUpdated:new Date()
-            }
-
+        uuid: mergedSegment.uuid,
+        segmentIndex: 0,
+        offset: mergedSegment.text.length,
+        momentUpdated: new Date()
+    };
 }
 
 function deleteSelectedSegment() {
@@ -461,27 +619,27 @@ function deleteSelectedSegment() {
 
         textSegments.value.splice(currentCursor.value.segmentIndex, 1);
         if (!textSegments.value.length) {
-            const newSegment = {
-                uuid: uuidv4(),
-                text: 'A new segment...',
-                highlighted: true,
-                active: true,
-                processing: false,
-                history: [],
-                specialInstructions: null,
-                messagePartial: null,
-                messageComplete: null,
-                messageError: null
-            };
+            const newSegment = createNewSegment(' ', true);
+            // const newSegment = {
+            //     uuid: uuidv4(),
+            //     text: 'A new segment...',
+            //     highlighted: true,
+            //     active: true,
+            //     processing: false,
+            //     history: [],
+            //     specialInstructions: null,
+            //     messagePartial: null,
+            //     messageComplete: null,
+            //     messageError: null
+            // };
             textSegments.value.push(newSegment);
 
             cursorSelect.value = {
-                uuid:newSegment.uuid,
-                segmentIndex:0,
-                offset:newSegment.text.length,
-                momentUpdated:new Date()
-            }
-
+                uuid: newSegment.uuid,
+                segmentIndex: 0,
+                offset: newSegment.text.length,
+                momentUpdated: new Date()
+            };
         }
 
         nextTick(() => {

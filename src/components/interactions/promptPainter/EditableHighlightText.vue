@@ -1,32 +1,71 @@
 <template>
     <div class="grid">
         <div class="col-12 md:col-8 bg-white">
-            <div class="editable-container">
-                <div class="content-wrapper" ref="contentElement" @mouseup="handleMouseUp($event, null)">
-                    <template v-for="(segment, index) in textSegments" :key="segment.uuid">
-                        <span
-                            v-show="segment.active"
-                            :data-uuid="segment.uuid"
-                            class="text-content"
-                            :class="{ highlight: segment.highlighted }"
-                            contenteditable="true"
-                            @input="handleInput($event, segment.uuid)"
-                            @keydown="handleKeyDown($event, segment.uuid)"
-                            @keyup="handleKeyUp($event, segment.uuid)"
-                            @mouseup="handleMouseUp($event, segment.uuid)"
-                            @paste="handlePaste($event, segment.uuid)"
-                            >{{ segment.messagePartial ? segment.messagePartial : segment.text }}</span
-                        >
+            <div class="content-wrapper" ref="contentElement" @mouseup="handleMouseUp($event, null)">
+                <template v-for="(segment, index) in textSegments" :key="segment.uuid">
+                    <template v-if="displayEditorControls && segment.active">
+                        <!-- Only show the history buttons if there is a history-->
+                        <!-- <template v-if="segment.history?.length"> -->
+
+                        <div class="p-button p-button-secondary p-button-rounded p-0">
+                            <div v-if="segment.historyIndex > 0" @click="undoHistory(segment, index)" class="p-button p-button-info p-button-rounded p-2">
+                                <i class="pi pi-arrow-circle-left"></i>
+                            </div>
+
+                            <span class="p-1"> {{ segment.historyIndex + 1 }} / {{ segment.history.length }} </span>
+
+                            <div v-if="segment.historyIndex < segment.history.length - 1" @click="redoHistory(segment, index)" class="p-button p-button-info p-button-rounded p-2">
+                                <i class="pi pi-arrow-circle-right"></i>
+                            </div>
+
+                            <template v-if="segment.comments?.length">
+                                <div @click="toggleComments(segment, index)" class="p-button p-button-help p-button-rounded p-2">
+                                    <i class="pi pi-comment"></i>
+                                    {{ segment.comments.length }}
+                                </div>
+                            </template>
+                        </div>
+
+                        <!-- </template> -->
                     </template>
-                </div>
+
+                    <!-- <Button icon="pi pi-bookmark" :label = "index.toString()" severity="secondary" rounded class="mb-2 mr-2" /> -->
+                    <span
+                        v-show="segment.active"
+                        :data-uuid="segment.uuid"
+                        class="text-content"
+                        :class="{ highlight: segment.highlighted }"
+                        contenteditable="true"
+                        @input="handleInput($event, segment.uuid)"
+                        @keydown="handleKeyDown($event, segment.uuid)"
+                        @keyup="handleKeyUp($event, segment.uuid)"
+                        @mouseup="handleMouseUp($event, segment.uuid)"
+                        @paste="handlePaste($event, segment.uuid)"
+                        @blur="handleBlur($event, segment.uuid)"
+                        >{{ segment.messagePartial ? segment.messagePartial : segment.text }}</span
+                    >
+
+                    <!-- Comments -->
+                    <template v-if="segment.showComments == true">
+                        <template v-for="(comment, cIndex) in segment.comments" :key="'comment' + cIndex + segment.uuid">
+                            <span class="w-full bg-purple-100 block m-2 p-2 rounded">
+                                <div @click="paintAction('applyComment', comment, cIndex)" class="p-button p-button-success p-button-rounded p-2 mr-2">
+                                    <i class="pi pi-check"></i>
+                                </div>
+
+                                <div @click="deleteComment(segment, comment, cIndex )" class="p-button p-button-warning p-button-rounded p-2">
+                                    <i class="pi pi-times"></i>
+                                </div>
+
+                                {{ comment.text }}
+                            </span>
+                        </template>
+                    </template>
+                </template>
             </div>
 
+            <slot> </slot>
             Current Segment Selected: {{ currentCursor.segmentIndex }}
-
-            <div class="flex">
-                <InputSwitch id="displayTable" v-model="displayTable" />
-                <label for="displayTable" class="p-1"> Display Editor Table </label>
-            </div>
 
             <DataTable
                 v-if="displayTable"
@@ -81,14 +120,28 @@
             <div class="prompt-painter control-bar p-2 border-round bg-gray-100">
                 <span>Prompt Painter</span>
 
+                <div class="flex">
+                    <InputSwitch id="displayTable" v-model="displayTable" />
+                    <label for="displayTable" class="p-1"> Display Editor Table </label>
+                </div>
+                <div class="flex">
+                    <InputSwitch id="segmentControls" v-model="displayEditorControls" />
+                    <label for="segmentControls" class="p-1"> Display Segment Controls </label>
+                </div>
+
                 <div class="button-row">
-                    <Button label="Split Segment" @click="splitSelection(null)" />
-                    <Button label="Add Segment" @click="splitSelection('insert')" />
+                    <Button label="Split Segment" @click="splitSelection(null)" class="p-button-success" />
+                    <Button label="Add Segment" @click="splitSelection('insert')" class="p-button-success" />
                 </div>
 
                 <div class="button-row">
                     <Button @click="paintAction('expand')" label="Expand 2x" class="p-button-success" />
                     <Button @click="paintAction('contract')" label="Contract 1/2" class="p-button-success" />
+                </div>
+
+                <div class="button-row">
+                    <Button @click="paintAction('critique')" label="Critique" class="p-button-help" />
+                    <Button @click="paintAction('applyAllComments')" label="Apply Comments" class="p-button-help" />
                 </div>
 
                 <label class="text-lg" for="specialInstructions">Special Instructions</label>
@@ -121,21 +174,7 @@
 <script setup>
 import { ref, watch, watchEffect, onMounted, nextTick } from 'vue';
 
-const props = defineProps({
-    textSegments: Array,
-    cursorSelect: Object
-});
-
-let models = ref([
-    { concurrentInstances: 20, provider: 'openAi', maxTokens: 128000, per1kInput: 0.01, per1kOutput: 0.03, model: 'gpt-4-1106-preview', name: { en: 'OpenAI GPT-4 Turbo (128k)', fr: 'OpenAI GPT-4 Turbo (128k)' } },
-    { concurrentInstances: 5, provider: 'anthropic', maxTokens: 200000, per1kInput: 0.008, per1kOutput: 0.024, model: 'claude-3-5-sonnet-20240620', name: { en: 'Claude 3.5 Sonnet', fr: 'Claude 3.5 Sonnet' } }
-]);
-
-const emit = defineEmits(['update:textSegments', 'cursorUpdate', 'splitSegment', 'updateSegment', 'paintAction', 'changeSegmentSelected']);
-const contentElement = ref(null);
-const specialInstructions = ref(null);
-const displayTable = ref(false);
-
+//Primevue Imports
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 
@@ -146,7 +185,15 @@ import Slider from 'primevue/slider';
 
 import InputSwitch from 'primevue/inputswitch';
 
+//Variables
+const props = defineProps({ textSegments: Array, cursorSelect: Object });
+const emit = defineEmits(['update:textSegments', 'cursorUpdate', 'splitSegment', 'updateSegment', 'paintAction', 'changeSegmentSelected', 'undoHistory', 'redoHistory', 'toggleComments', 'deleteComments', 'blurUpdate']);
+const contentElement = ref(null);
+const specialInstructions = ref(null);
+const displayTable = ref(false);
+const displayEditorControls = ref(false);
 const currentCursor = ref({ node: null, offset: 0, segmentIndex: 0 });
+
 watch(currentCursor, (newCursor, oldCursor) => {
     if (newCursor.segmentIndex !== oldCursor.segmentIndex) {
         // The cursor has moved to a different segment
@@ -224,42 +271,42 @@ function handleInput(event, uuid) {
 // }
 
 function setCursor(node, offset) {
-  try {
-    // Ensure that we have a valid text node. If not, find the text node within the element.
-    if (node.nodeType !== Node.TEXT_NODE) {
-      // If the node has child nodes, find the first text node.
-      if (node.childNodes.length > 0) {
-        for (let i = 0; i < node.childNodes.length; i++) {
-          if (node.childNodes[i].nodeType === Node.TEXT_NODE) {
-            node = node.childNodes[i];
-            break;
-          }
+    try {
+        // Ensure that we have a valid text node. If not, find the text node within the element.
+        if (node.nodeType !== Node.TEXT_NODE) {
+            // If the node has child nodes, find the first text node.
+            if (node.childNodes.length > 0) {
+                for (let i = 0; i < node.childNodes.length; i++) {
+                    if (node.childNodes[i].nodeType === Node.TEXT_NODE) {
+                        node = node.childNodes[i];
+                        break;
+                    }
+                }
+            } else {
+                // If there are no child nodes, create a text node and append it to the element.
+                node = document.createTextNode('');
+                node.appendChild(node);
+            }
         }
-      } else {
-        // If there are no child nodes, create a text node and append it to the element.
-        node = document.createTextNode('');
-        node.appendChild(node);
-      }
+
+        // Ensure the offset is not greater than the text length
+        offset = Math.min(offset, node.textContent.length);
+
+        const range = document.createRange();
+        const sel = window.getSelection();
+
+        // Set the start position of the range to the specified character offset within the text node
+        range.setStart(node, offset);
+        range.collapse(true);
+
+        // Clear any existing selections and add the new range
+        sel.removeAllRanges();
+        sel.addRange(range);
+    } catch (error) {
+        console.log('setCursor error', error);
     }
 
-    // Ensure the offset is not greater than the text length
-    offset = Math.min(offset, node.textContent.length);
-
-    const range = document.createRange();
-    const sel = window.getSelection();
-
-    // Set the start position of the range to the specified character offset within the text node
-    range.setStart(node, offset);
-    range.collapse(true);
-
-    // Clear any existing selections and add the new range
-    sel.removeAllRanges();
-    sel.addRange(range);
-  } catch (error) {
-    console.log("setCursor error", error);
-  }
-
-  updateCursorPosition();
+    updateCursorPosition();
 }
 
 function handleKeyUp(event, uuid) {
@@ -368,15 +415,23 @@ function updateTextAndHighlights() {
                     uuid: uuid,
                     text: span.textContent,
                     highlighted: span.classList.contains('highlight'),
-                    active: originalSegment.active,
-                    processing: originalSegment.processing,
+
                     history: originalSegment.history,
+                    historyIndex: originalSegment.historyIndex,
+
+                    comments: originalSegment.comments,
+                    showComments: originalSegment.showComments,
+
+                    action: originalSegment.action, //last action
                     trigger: originalSegment.trigger,
                     systemPrompt: originalSegment.systemPrompt,
                     userPrompt: originalSegment.userPrompt,
+                    specialInstructions: originalSegment.specialInstructions,
                     messagePending: originalSegment.messagePending,
                     messageComplete: originalSegment.messageComplete,
-                    messageError: originalSegment.messageError
+                    messageError: originalSegment.messageError,
+                    processing: originalSegment.processing,
+                    active: originalSegment.active
                 };
             })
             .filter((segment) => segment !== null); // Remove any null entries due to errors
@@ -417,7 +472,7 @@ function updateCursorPosition() {
             // Find the index of the segment with the same uuid
             const segmentIndex = props.textSegments.findIndex((s) => s.uuid === uuid);
             if (segmentIndex === -1) {
-                console.warn('Failed to find the segment with UUID:', uuid);
+                // console.warn('Failed to find the segment with UUID:', uuid);
                 return;
             }
 
@@ -452,6 +507,13 @@ function handlePaste(event) {
             updateCursorPosition();
         }
     });
+}
+
+function handleBlur(event, uuid) {
+    //Edit type is human
+    // console.log("handleBlur event", event)
+    // console.log("handleBlur uuid", uuid)
+    emit('blurUpdate', uuid);
 }
 
 function normalizeNewLines(text) {
@@ -521,9 +583,10 @@ function onCellEditComplete(event) {
 }
 
 //Emit the kind of action being selected
-function paintAction(action) {
-    console.log('action', action);
+function paintAction(action, comment = null, cIndex = null) {
     let prompt = '';
+
+    let segment = props.textSegments[currentCursor.value.segmentIndex];
 
     if (action == 'expand') {
         prompt = `
@@ -534,15 +597,15 @@ function paintAction(action) {
 
     ##Text Content to Expand
     "${JSON.stringify({
-        text: props.textSegments[currentCursor.value.segmentIndex].text
+        text: segment.text
     })}"
 
     This is an extract from the larger document we are working on. 
     Here is the whole document to provide context
     
     ## Whole document:
-    ${props.textSegments.map((segment) => {
-        return JSON.stringify({ text: segment.text });
+    ${props.textSegments.map((seg) => {
+        return JSON.stringify({ text: seg.text });
     })}
     `;
     }
@@ -556,7 +619,7 @@ function paintAction(action) {
 
     ##Text Content to Contract / Minimize
     "${JSON.stringify({
-        text: props.textSegments[currentCursor.value.segmentIndex].text
+        text: segment.text
     })}"
 
     
@@ -566,33 +629,111 @@ function paintAction(action) {
     if (action == 'refine') {
         prompt = `
 
+        # Rewrite this passage of text following the special instructions below
+        "${JSON.stringify({
+            text: segment.text
+        })}"
 
-    # Rewrite this passage of text following the special instructions below
-    "${JSON.stringify({
-        text: props.textSegments[currentCursor.value.segmentIndex].text
-    })}"
 
+        # Special Instructions
+        ## In your rewrite, ensure you follow these special instructions very closely.
+        ${specialInstructions.value}
 
-    # Special Instructions
-    ## In your rewrite, ensure you follow these special instructions very closely.
-    ${specialInstructions.value}
-
-    
-    ## Here is the entire text as context. DO not reference anything other than the passage of text above to rewrite
-        ${props.textSegments.map((segment) => {
-        return JSON.stringify({ text: segment.text });
-    })}
+        
+        ## Here is the entire text as context. DO not reference anything other than the passage of text above to rewrite
+            ${props.textSegments.map((seg) => {
+                return JSON.stringify({ text: seg.text });
+            })}
 
     `;
+    }
 
-        //Whole document reference
-        /*    
-    
+    if (action == 'critique') {
+        prompt = `
 
-*/
+        # Instructions
+        Evaluate this passage of text in context of the whole document and provide a series of critques and recommendations on how to make the passage better. Do not comment on the other sections in the whole document, just this identified text.
+        Each critique must be less than 50 words long. It should capture briefly the issue and the recommendation 
+
+        # Identified Text to Evaluate 
+        "${JSON.stringify({
+            text: segment.text
+        })}"
+
+        # Whole text
+        Here is the entire text as context. Do not reference anything other than the passage of text above to critique
+            ${props.textSegments.map((seg) => {
+                return JSON.stringify({ text: seg.text });
+            })}
+
+        #Format Instructions
+        Always response in a JSON array of objects. Do not respond with any other text other than the json array
+        Here is an example of the correct format.
+        [{role:'system', text: The critique and any recommended actions}]
+    `;
+    }
+
+    if (action == 'applyComment' && comment) {
+        prompt = `
+
+        # Instructions
+        Edit this passage and apply the attached comment
+
+        # Here is the text to modify 
+        "${JSON.stringify({
+            text: segment.text
+        })}"
+
+        # Here are the comment you must consider when you are modifying the text 
+        "${JSON.stringify({
+            text: segment.comments[cIndex]
+        })}"
+        `;
+
+        //Delete the comment once it is actioned
+        deleteComment(segment, comment, cIndex)
+
+    }
+
+    if (action == 'applyAllComments') {
+        prompt = `
+
+        # Instructions
+        Edit this passage and apply the attached comments
+
+        # Here is the text to modify 
+        "${JSON.stringify({
+            text: segment.text
+        })}"
+
+        # Here are the comments you must consider when you are modifying the text 
+        "${JSON.stringify({
+            text: segment.comments
+        })}"
+
+       
+
+        `;
     }
 
     emit('paintAction', { action: action, prompt: prompt });
+}
+
+function deleteComment(segment, comment, cIndex) {
+    emit('deleteComments', [{ segment, comment, cIndex }]);
+}
+
+//Emit undo and redo functions to update the text
+function undoHistory(segment, index) {
+    emit('undoHistory', segment.uuid);
+}
+
+function redoHistory(segment, index) {
+    emit('redoHistory', segment.uuid);
+}
+
+function toggleComments(segment, index) {
+    emit('toggleComments', segment.uuid);
 }
 </script>
 <style scoped>
@@ -610,6 +751,12 @@ function paintAction(action) {
 
 .content-wrapper {
     position: relative;
+
+    border-radius: 8px;
+    border: 2px solid #e0e0e0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+    padding: 20px;
 }
 
 .text-content {
@@ -671,28 +818,6 @@ function paintAction(action) {
 .button-row {
     grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
 }
-/*   
-  :deep(.button-row .p-button),
-  :deep(.button-row .p-inputtext) {
-    width: 100%;
-    margin: 0;
-  }
-  
-  :deep(.button-row .p-button) {
-    justify-content: center;
-  }
-  
-  :deep(.button-row .p-button .p-button-label) {
-    flex: 1 1 auto;
-    text-align: center;
-  } */
-
-/* Responsive adjustment for smaller screens */
-/* @media (max-width: 768px) {
-    .button-row {
-      grid-template-columns: 1fr;
-    }
-  } */
 
 .prompt-painter {
     position: fixed; /* Fixed positioning relative to the viewport */
