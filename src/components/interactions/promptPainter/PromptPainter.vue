@@ -157,7 +157,7 @@ function createNewSegment(text = '', highlighted = false) {
 
         //Comments
         comments: [], //User or auto generated comments in this format {role:"user", text:'comment 1'}, {role:"system",text:'comment 2'}
-        showComments: false, //Whether to the comments are being rendered or not
+        showComments: true, //Whether to the comments are being rendered or not
 
         //Socket Controls
         action: null, //Track the last action used

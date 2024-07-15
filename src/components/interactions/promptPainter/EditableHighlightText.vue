@@ -191,7 +191,7 @@ const emit = defineEmits(['update:textSegments', 'cursorUpdate', 'splitSegment',
 const contentElement = ref(null);
 const specialInstructions = ref(null);
 const displayTable = ref(false);
-const displayEditorControls = ref(false);
+const displayEditorControls = ref(true);
 const currentCursor = ref({ node: null, offset: 0, segmentIndex: 0 });
 
 watch(currentCursor, (newCursor, oldCursor) => {
