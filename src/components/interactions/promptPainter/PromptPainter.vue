@@ -350,6 +350,10 @@ function handlePaintAction({ action, prompt }) {
         }
 
         if (action == 'critique') {
+
+
+            toast.add({ severity: 'success', summary: 'Critique being generated', detail:"Please wait approximately 5-8 seconds", life: 5000 });
+
             segment.systemPrompt = `
                 Rewrite the text provided following instructions in the prompt. 
                 Do not repeat other elements of the whole document; this is just for context.
