@@ -698,4 +698,13 @@ function deleteSelectedSegment() {
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
     /* transform: scale(1.01); */
 }
+
+.button-row {
+    display: grid;
+    gap: 0.5rem; /* This sets both the vertical and horizontal gap */
+    width: 100%;
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+}
+
+
 </style>

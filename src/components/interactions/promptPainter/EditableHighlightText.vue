@@ -810,20 +810,35 @@ function toggleComments(segment, index) {
 
 .button-row {
     display: grid;
-    gap: 0.5rem;
+    row-gap: 1rem; /* Vertical spacing */
+    column-gap: 0.5rem; /* Horizontal spacing */
     width: 100%;
-}
-
-/* This will create equal width columns based on the number of children */
-.button-row {
     grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
 }
 
+
 .prompt-painter {
-    position: fixed; /* Fixed positioning relative to the viewport */
-    top: 100px; /* Align to the top of the viewport */
-    right: 0; /* Align to the right side (adjust as needed) */
-    width: 25%;
+    right: 0;
     z-index: 1000; /* Ensure it stays above other content */
 }
+
+/* Desktop styles */
+@media (min-width: 992px) { /* Adjust the min-width as needed for your desktop breakpoint */
+    .prompt-painter {
+        top: 100px;
+        position: fixed; /* Fixed positioning relative to the viewport */
+        width: 25%;
+    }
+}
+
+/* Mobile styles */
+@media (max-width: 991px) { /* Adjust the max-width as needed for your mobile breakpoint */
+    .prompt-painter {
+        position: relative; /* Relative positioning */
+        width: 100%;
+        order: -1; /* To ensure it is shown above the 'what are we trying to accomplish today' section */
+    }
+}
+
+
 </style>
