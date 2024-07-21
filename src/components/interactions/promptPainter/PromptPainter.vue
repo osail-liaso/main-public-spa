@@ -71,6 +71,7 @@
                         @toggleComments="handleToggleComments"
                         @deleteComments="handleDeleteComments"
                         @addStyleBrush="handleAddStyleBrush"
+                        @uploadedBrushes="handleUploadedBrushes"
                     >
                         <!-- Canvas controls and features -->
                         <!-- {{ textSegments }} -->
@@ -503,6 +504,12 @@ function handleDeleteComments(commentsArray) {
 function handleAddStyleBrush({ name, segment })
 {
     styleBrushes.value.push({name,style:segment.text})
+}
+
+function handleUploadedBrushes(brushesArray)
+{
+    //Merge the brushes back in
+    styleBrushes.value = [...styleBrushes.value, ...brushesArray]
 }
 
 function messagePartial(segment, payload) {

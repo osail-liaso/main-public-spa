@@ -53,7 +53,7 @@
                                     <i class="pi pi-check"></i>
                                 </div>
 
-                                <div @click="deleteComment(segment, comment, cIndex )" class="p-button p-button-warning p-button-rounded p-2">
+                                <div @click="deleteComment(segment, comment, cIndex)" class="p-button p-button-warning p-button-rounded p-2">
                                     <i class="pi pi-times"></i>
                                 </div>
 
@@ -144,7 +144,6 @@
                     <Button @click="paintAction('applyAllComments')" label="Apply Comments" class="p-button-help" />
                 </div>
 
-
                 <label class="text-lg" for="specialInstructions">Special Instructions</label>
 
                 <InputText id="specialInstructions" v-model="specialInstructions" class="w-full p-inputtext-lg editable-container" autocomplete="off" />
@@ -155,23 +154,28 @@
 
                 <label class="text-lg" for="styleBrushes">Style Name</label>
 
+                <div class="button-row">
+                    <Button @click="paintAction('captureStyleBrush')" label="Capture Style" class="p-button-info" />
+                </div>
 
                 <div class="button-row">
                     <InputText id="styleBrushes" v-model="styleName" class="w-full p-inputtext-lg editable-container" autocomplete="off" />
-                    <Button @click="paintAction('captureStyleBrush')" label="Capture Style" class="p-button-help" />
+                    <Button @click="addStyleBrush()" label="Add Style" class="p-button-info" />
                 </div>
 
                 <div class="button-row">
-                    <Button :disabled = "styleName?.length == 0" @click="addStyleBrush()" label="Add Style" class="p-button-help" />
-                </div>
-
-                <div class="button-row">
-                    <MultiSelect id="multiselect" v-model="selectedStyleBrushes" :options="defaultAndCustomBrushes" optionLabel="name"  />
+                    <MultiSelect id="multiselect" v-model="selectedStyleBrushes" :options="defaultAndCustomBrushes" optionLabel="name" />
                     <!-- <Dropdown id="state" v-model="selectedStyleBrush" :options="props.styleBrushes" optionLabel="name" placeholder="Select One"></Dropdown> -->
-                    <Button @click="paintAction('applyStyleBrush')" label="Apply Style" class="p-button-help" />
-                  
+                    <Button @click="paintAction('applyStyleBrush')" label="Apply Style" class="p-button-info" />
                 </div>
-{{ selectedStyleBrush }}
+
+                <div class="button-row">
+                    <Button @click="downloadStyleBrushes()" label="Download Brushes" class="p-button-info" />
+                    <Button @click="uploadStyleBrushes()" label="Upload Brushes" class="p-button-info" />
+                    <input v-show="false" type="file" ref="brushesFileInput" @change="handleUploadStyleBrushes" hidden />
+                </div>
+
+                <!-- {{ selectedStyleBrush }} -->
 
                 <!-- <div class="button-row">
           <Button @click="paintAction('autoEnhance')"
@@ -209,8 +213,22 @@ import InputSwitch from 'primevue/inputswitch';
 import defaultBrushes from '@/assets/defaultBrushes.json';
 
 //Variables
-const props = defineProps({ textSegments: Array, cursorSelect: Object, styleBrushes:{type:Array, default:[]} });
-const emit = defineEmits(['update:textSegments', 'cursorUpdate', 'splitSegment', 'updateSegment', 'paintAction', 'changeSegmentSelected', 'undoHistory', 'redoHistory', 'toggleComments', 'deleteComments', 'blurUpdate', 'addStyleBrush']);
+const props = defineProps({ textSegments: Array, cursorSelect: Object, styleBrushes: { type: Array, default: [] } });
+const emit = defineEmits([
+    'update:textSegments',
+    'cursorUpdate',
+    'splitSegment',
+    'updateSegment',
+    'paintAction',
+    'changeSegmentSelected',
+    'undoHistory',
+    'redoHistory',
+    'toggleComments',
+    'deleteComments',
+    'blurUpdate',
+    'addStyleBrush',
+    'uploadedBrushes'
+]);
 const contentElement = ref(null);
 const specialInstructions = ref(null);
 const displayTable = ref(false);
@@ -221,10 +239,12 @@ const styleName = ref(null);
 const selectedStyleBrush = ref(null);
 const selectedStyleBrushes = ref([]);
 
+const brushesFileInput = ref(null);
+
 //Merge the default brushes with the custom brushes
-const defaultAndCustomBrushes = computed(()=>{
-return  [...defaultBrushes, ...props.styleBrushes];
-})
+const defaultAndCustomBrushes = computed(() => {
+    return [...defaultBrushes, ...props.styleBrushes];
+});
 const styleTemplate = `{
   "styleGuide": {
     "targetIndividual": {
@@ -276,7 +296,7 @@ const styleTemplate = `{
       }
     ]
   }
-}`
+}`;
 
 watch(currentCursor, (newCursor, oldCursor) => {
     if (newCursor.segmentIndex !== oldCursor.segmentIndex) {
@@ -775,8 +795,7 @@ function paintAction(action, comment = null, cIndex = null) {
         `;
 
         //Delete the comment once it is actioned
-        deleteComment(segment, comment, cIndex)
-
+        deleteComment(segment, comment, cIndex);
     }
 
     if (action == 'applyAllComments') {
@@ -800,8 +819,7 @@ function paintAction(action, comment = null, cIndex = null) {
         `;
     }
 
-    if(action == 'captureStyleBrush')
-    {
+    if (action == 'captureStyleBrush') {
         prompt = `
         Evaluate this text and fully complete the style mimicry template below.
 
@@ -811,18 +829,15 @@ function paintAction(action, comment = null, cIndex = null) {
         })}"
 
         # Here is the style template
-        "${JSON.stringify(
-             styleTemplate
-        )}"
+        "${JSON.stringify(styleTemplate)}"
 
         In your answer, always omit the instructions keys
 
        
-        `
+        `;
     }
 
-    if(action == 'applyStyleBrush')
-    {
+    if (action == 'applyStyleBrush') {
         prompt = `
         Transform the selected text by applying the style guide(s) below. Mimic the same use of linguistic structures, narrative styles, tones, themes, and techniques provided
 
@@ -833,16 +848,18 @@ function paintAction(action, comment = null, cIndex = null) {
 
         # Here are 1 or more of style guides to apply.
         "${JSON.stringify(
-             selectedStyleBrushes.value.map((style)=>{return style.style})
+            selectedStyleBrushes.value.map((style) => {
+                return style.style;
+            })
         )}"
 
         Only respond with the modified text. Do not describe what the style guide would do, only strictly return the modified text with the style guide applied to it.
         Play close attention to the requirements in the styleProfile section and avoid any stylystic devices which are identified as negatives. 
        
-        `
+        `;
     }
-    
-    console.log('emit paintAction', { action: action, prompt: prompt })
+
+    console.log('emit paintAction', { action: action, prompt: prompt });
 
     emit('paintAction', { action: action, prompt: prompt });
 }
@@ -864,12 +881,60 @@ function toggleComments(segment, index) {
     emit('toggleComments', segment.uuid);
 }
 
-
 function addStyleBrush() {
     let segment = props.textSegments[currentCursor.value.segmentIndex];
-    emit('addStyleBrush', {name:styleName.value, segment});
+    emit('addStyleBrush', { name: styleName.value, segment });
 }
 
+function downloadStyleBrushes() {
+    try {
+        const blob = new Blob([JSON.stringify(props.styleBrushes)], {
+            type: 'application/json'
+        });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'customStyleBrushes.json';
+        link.click();
+        URL.revokeObjectURL(link.href);
+    } catch (error) {
+        console.log(error);
+        emit('error', error);
+    }
+}
+
+const uploadStyleBrushes = () => {
+    if (brushesFileInput.value) {
+        brushesFileInput.value.click(); // Trigger the file input click event
+    }
+};
+
+function handleUploadStyleBrushes(event) {
+    const files = event.target.files;
+    if (files.length === 0) {
+        return;
+    }
+
+    const file = files[0];
+    console.log('Selected file', file)
+    if (props.format === 'json' || file.type === 'application/json') {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const json = JSON.parse(e.target.result);
+                const array = Array.isArray(json) ? json : [json]; // Convert to array if not already
+                emit('uploadedBrushes', array); // Emit the array to the parent
+            } catch (error) {
+                console.log('Error on file upload', error);
+            }
+        };
+        reader.onerror = (error) => {
+            console.log('Error on file upload', error);
+        };
+        reader.readAsText(file); // Read the file as text
+    } else {
+        console.log('Error - Unsupported file type');
+    }
+}
 
 </script>
 <style scoped>
@@ -952,14 +1017,14 @@ function addStyleBrush() {
     grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
 }
 
-
 .prompt-painter {
     right: 0;
     z-index: 1000; /* Ensure it stays above other content */
 }
 
 /* Desktop styles */
-@media (min-width: 992px) { /* Adjust the min-width as needed for your desktop breakpoint */
+@media (min-width: 992px) {
+    /* Adjust the min-width as needed for your desktop breakpoint */
     .prompt-painter {
         top: 100px;
         position: fixed; /* Fixed positioning relative to the viewport */
@@ -968,13 +1033,12 @@ function addStyleBrush() {
 }
 
 /* Mobile styles */
-@media (max-width: 991px) { /* Adjust the max-width as needed for your mobile breakpoint */
+@media (max-width: 991px) {
+    /* Adjust the max-width as needed for your mobile breakpoint */
     .prompt-painter {
         position: relative; /* Relative positioning */
         width: 100%;
         order: -1; /* To ensure it is shown above the 'what are we trying to accomplish today' section */
     }
 }
-
-
 </style>
