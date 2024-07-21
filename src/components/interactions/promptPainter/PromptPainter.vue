@@ -58,6 +58,7 @@
                         id="promptCanvas"
                         v-model:textSegments="textSegments"
                         :cursorSelect="cursorSelect"
+                        :styleBrushes="styleBrushes"
                         @changeSegmentSelected="changeSegmentSelected"
                         @updateSegment="updateSegment"
                         @update:textSegments="handleTextSegmentsUpdate"
@@ -69,6 +70,7 @@
                         @blurUpdate="handleBlurUpdate"
                         @toggleComments="handleToggleComments"
                         @deleteComments="handleDeleteComments"
+                        @addStyleBrush="handleAddStyleBrush"
                     >
                         <!-- Canvas controls and features -->
                         <!-- {{ textSegments }} -->
@@ -112,6 +114,9 @@ const textSegmentSelected = ref(null);
 const cursorSelect = ref({ segmentIndex: 0, offset: 0 });
 const currentCursor = ref({ segmentIndex: 0, offset: 0 });
 const accomplishmentPrompt = ref({});
+
+const styleBrushes = ref([]);
+
 
 //Replace with adminModels and selectedModel
 let models = ref([
@@ -350,9 +355,7 @@ function handlePaintAction({ action, prompt }) {
         }
 
         if (action == 'critique') {
-
-
-            toast.add({ severity: 'success', summary: 'Critique being generated', detail:"Please wait approximately 5-8 seconds", life: 5000 });
+            toast.add({ severity: 'success', summary: 'Critique being generated', detail: 'Please wait approximately 5-8 seconds', life: 5000 });
 
             segment.systemPrompt = `
                 Rewrite the text provided following instructions in the prompt. 
@@ -382,6 +385,31 @@ function handlePaintAction({ action, prompt }) {
             segment.comments = [];
         }
 
+        if (action == 'captureStyleBrush') {
+            segment.systemPrompt = `
+                
+                Complete the provided JSON style template
+                Fully capture all style indicators and provide detailed analysis.
+                Never address the user, always stricktly complete the JSON style template provided.
+            `;
+
+            //Reset the comments
+            segment.comments = [];
+        }
+
+        if (action == 'applyStyleBrush') {
+            segment.systemPrompt = `
+                
+                Transform the text with the style guide.
+                Use the style guide and adapt the specific linguistic and narrative and descriptive methods used.
+                Maintain the overall structure of the provided text while transforming
+            `;
+
+            //Reset the comments
+            segment.comments = [];
+        }
+
+
         //Maybe some actions don't trigger a socket
         //Future use
         if (socketAction) {
@@ -391,7 +419,7 @@ function handlePaintAction({ action, prompt }) {
             segment.trigger = !segment.trigger;
         }
 
-        // console.log("segment to trigger", segment);
+        console.log("segment to trigger", segment);
     }
 
     if (action == 'autoEnhance') {
@@ -471,9 +499,15 @@ function handleDeleteComments(commentsArray) {
     });
 }
 
+
+function handleAddStyleBrush({ name, segment })
+{
+    styleBrushes.value.push({name,style:segment.text})
+}
+
 function messagePartial(segment, payload) {
     if (payload?.message?.length) {
-        let messageTextActions = ['expand', 'contract', 'refine', 'applyComment', 'applyAllComments'];
+        let messageTextActions = ['expand', 'contract', 'refine', 'applyComment', 'applyAllComments', 'captureStyleBrush', 'applyStyleBrush'];
         if (messageTextActions.includes(segment.action)) {
             segment.messagePartial = payload.message;
             segment.processing = true;
@@ -486,7 +520,7 @@ function messageComplete(segment, payload) {
         //Commit the current segment to history
 
         //Depending on the types of actions, update different parts of the text segment
-        let messageTextActions = ['expand', 'contract', 'refine', 'applyComment', 'applyAllComments'];
+        let messageTextActions = ['expand', 'contract', 'refine', 'applyComment', 'applyAllComments', 'captureStyleBrush', 'applyStyleBrush'];
         let messageCommentActions = ['critique'];
 
         if (messageTextActions.includes(segment.action)) {
@@ -705,6 +739,4 @@ function deleteSelectedSegment() {
     width: 100%;
     grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
 }
-
-
 </style>

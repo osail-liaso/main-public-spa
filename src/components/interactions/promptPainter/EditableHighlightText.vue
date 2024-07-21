@@ -144,6 +144,7 @@
                     <Button @click="paintAction('applyAllComments')" label="Apply Comments" class="p-button-help" />
                 </div>
 
+
                 <label class="text-lg" for="specialInstructions">Special Instructions</label>
 
                 <InputText id="specialInstructions" v-model="specialInstructions" class="w-full p-inputtext-lg editable-container" autocomplete="off" />
@@ -151,6 +152,25 @@
                 <div class="button-row">
                     <Button @click="paintAction('refine')" label="Submit" class="p-button-success" />
                 </div>
+
+                <label class="text-lg" for="styleBrushes">Style Name</label>
+
+
+                <div class="button-row">
+                    <InputText id="styleBrushes" v-model="styleName" class="w-full p-inputtext-lg editable-container" autocomplete="off" />
+                    <Button @click="paintAction('captureStyleBrush')" label="Capture Style" class="p-button-help" />
+                </div>
+
+                <div class="button-row">
+                    <Button :disabled = "styleName?.length == 0" @click="addStyleBrush()" label="Add Style" class="p-button-help" />
+                </div>
+
+                <div class="button-row">
+                    <Dropdown id="state" v-model="selectedStyleBrush" :options="props.styleBrushes" optionLabel="name" placeholder="Select One"></Dropdown>
+                    <Button @click="paintAction('applyStyleBrush')" label="Apply Style" class="p-button-help" />
+                  
+                </div>
+{{ selectedStyleBrush }}
 
                 <!-- <div class="button-row">
           <Button @click="paintAction('autoEnhance')"
@@ -186,13 +206,70 @@ import Slider from 'primevue/slider';
 import InputSwitch from 'primevue/inputswitch';
 
 //Variables
-const props = defineProps({ textSegments: Array, cursorSelect: Object });
-const emit = defineEmits(['update:textSegments', 'cursorUpdate', 'splitSegment', 'updateSegment', 'paintAction', 'changeSegmentSelected', 'undoHistory', 'redoHistory', 'toggleComments', 'deleteComments', 'blurUpdate']);
+const props = defineProps({ textSegments: Array, cursorSelect: Object, styleBrushes:{type:Array, default:[]} });
+const emit = defineEmits(['update:textSegments', 'cursorUpdate', 'splitSegment', 'updateSegment', 'paintAction', 'changeSegmentSelected', 'undoHistory', 'redoHistory', 'toggleComments', 'deleteComments', 'blurUpdate', 'addStyleBrush']);
 const contentElement = ref(null);
 const specialInstructions = ref(null);
 const displayTable = ref(false);
 const displayEditorControls = ref(true);
 const currentCursor = ref({ node: null, offset: 0, segmentIndex: 0 });
+
+const styleName = ref(null);
+const selectedStyleBrush = ref(null);
+
+
+const styleTemplate = `{
+  "styleMimicryGuide": {
+    "targetIndividual": {
+      "name": "",
+      "role": "",
+      "biographicalContext": "",
+      "instructions": "If provided, capture the name, role, and a brief context of the individual whose style is to be mimicked."
+    },
+    "styleAttributes": {
+      "languageUse": {
+        "vocabulary": [],
+        "sentenceStructure": [],
+        "rhetoricalDevices": [],
+        "instructions": "List 5-10 specific vocabulary, sentence structures, and rhetorical devices characteristic of the individual's style."
+      },
+      "tone": {
+        "overallTone": "",
+        "emotionalRange": [],
+        "intendedEffect": "",
+        "instructions": "Describe the overall tone, 1-5 range of emotions, and the effect the individual's style is intended to have on the audience."
+      },
+      "themes": [],
+      "instructions": "Identify central themes the individual often explores in their communication.",
+      "dialogue": {
+        "characterization": "",
+        "interactionStyle": "",
+        "instructions": "Describe any notable features of how the individual's characters speak (if applicable) and their general style of interaction."
+      },
+      "narrativeTechniques": {
+        "perspective": "",
+        "structuralChoices": [],
+        "instructions": "Detail the narrative perspective and any structural choices the individual commonly employs in their communication."
+      }
+    },
+    "textualExamples": [
+      {
+        "text": "",
+        "attribute": "",
+        "instructions": "Provide examples of text that illustrate the individual's style, along with an explanation of the attribute demonstrated."
+      }
+    ],
+    "styleProfile": "",
+    "instructions": "Write a narrative synthesis of the individual's style, providing an overview and detailed description of key style elements.",
+    "evaluationCriteria": [
+      {
+        "name": "",
+        "description": "",
+        "instructions": "Define criteria for evaluating the effectiveness of the individual's style, providing a name and description for each."
+      }
+    ]
+  }
+}`
 
 watch(currentCursor, (newCursor, oldCursor) => {
     if (newCursor.segmentIndex !== oldCursor.segmentIndex) {
@@ -716,6 +793,50 @@ function paintAction(action, comment = null, cIndex = null) {
         `;
     }
 
+    if(action == 'captureStyleBrush')
+    {
+        prompt = `
+        Evaluate this text and fully complete the style mimicry template below.
+
+        # Here is the text to evaluate 
+        "${JSON.stringify({
+            text: segment.text
+        })}"
+
+        # Here is the style template
+        "${JSON.stringify(
+             styleTemplate
+        )}"
+
+        In your answer, always omit the instructions keys
+
+       
+        `
+    }
+
+    if(action == 'applyStyleBrush')
+    {
+        prompt = `
+        Transform the selected text by applying the style guide below. Mimic the same use of linguistic structures, narrative styles, tones, themes, and techniques provided
+
+        # Here is the text to transform 
+        "${JSON.stringify({
+            text: segment.text
+        })}"
+
+        # Here is the style guide
+        "${JSON.stringify(
+             selectedStyleBrush.value.style
+        )}"
+
+        In your answer, always omit the instructions keys
+
+       
+        `
+    }
+    
+    console.log('emit paintAction', { action: action, prompt: prompt })
+
     emit('paintAction', { action: action, prompt: prompt });
 }
 
@@ -735,6 +856,14 @@ function redoHistory(segment, index) {
 function toggleComments(segment, index) {
     emit('toggleComments', segment.uuid);
 }
+
+
+function addStyleBrush() {
+    let segment = props.textSegments[currentCursor.value.segmentIndex];
+    emit('addStyleBrush', {name:styleName.value, segment});
+}
+
+
 </script>
 <style scoped>
 .container {
