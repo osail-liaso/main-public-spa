@@ -166,11 +166,12 @@
                 </div>
 
                 <div class="button-row">
-                    <Dropdown id="state" v-model="selectedStyleBrush" :options="props.styleBrushes" optionLabel="name" placeholder="Select One"></Dropdown>
+                    <MultiSelect id="multiselect" v-model="selectedStyleBrushes" :options="defaultAndCustomBrushes" optionLabel="name"  />
+                    <!-- <Dropdown id="state" v-model="selectedStyleBrush" :options="props.styleBrushes" optionLabel="name" placeholder="Select One"></Dropdown> -->
                     <Button @click="paintAction('applyStyleBrush')" label="Apply Style" class="p-button-help" />
                   
                 </div>
-<!-- {{ selectedStyleBrush }} -->
+{{ selectedStyleBrush }}
 
                 <!-- <div class="button-row">
           <Button @click="paintAction('autoEnhance')"
@@ -192,7 +193,7 @@
 </template>
 
 <script setup>
-import { ref, watch, watchEffect, onMounted, nextTick } from 'vue';
+import { ref, watch, watchEffect, onMounted, nextTick, computed } from 'vue';
 
 //Primevue Imports
 import DataTable from 'primevue/datatable';
@@ -205,6 +206,8 @@ import Slider from 'primevue/slider';
 
 import InputSwitch from 'primevue/inputswitch';
 
+import defaultBrushes from '@/assets/defaultBrushes.json';
+
 //Variables
 const props = defineProps({ textSegments: Array, cursorSelect: Object, styleBrushes:{type:Array, default:[]} });
 const emit = defineEmits(['update:textSegments', 'cursorUpdate', 'splitSegment', 'updateSegment', 'paintAction', 'changeSegmentSelected', 'undoHistory', 'redoHistory', 'toggleComments', 'deleteComments', 'blurUpdate', 'addStyleBrush']);
@@ -216,10 +219,14 @@ const currentCursor = ref({ node: null, offset: 0, segmentIndex: 0 });
 
 const styleName = ref(null);
 const selectedStyleBrush = ref(null);
+const selectedStyleBrushes = ref([]);
 
-
+//Merge the default brushes with the custom brushes
+const defaultAndCustomBrushes = computed(()=>{
+return  [...defaultBrushes, ...props.styleBrushes];
+})
 const styleTemplate = `{
-  "styleMimicryGuide": {
+  "styleGuide": {
     "targetIndividual": {
       "name": "",
       "role": "",
@@ -817,20 +824,20 @@ function paintAction(action, comment = null, cIndex = null) {
     if(action == 'applyStyleBrush')
     {
         prompt = `
-        Transform the selected text by applying the style guide below. Mimic the same use of linguistic structures, narrative styles, tones, themes, and techniques provided
+        Transform the selected text by applying the style guide(s) below. Mimic the same use of linguistic structures, narrative styles, tones, themes, and techniques provided
 
         # Here is the text to transform 
         "${JSON.stringify({
             text: segment.text
         })}"
 
-        # Here is the style guide
+        # Here are 1 or more of style guides to apply.
         "${JSON.stringify(
-             selectedStyleBrush.value.style
+             selectedStyleBrushes.value.map((style)=>{return style.style})
         )}"
 
-        In your answer, always omit the instructions keys
-
+        Only respond with the modified text. Do not describe what the style guide would do, only strictly return the modified text with the style guide applied to it.
+        Play close attention to the requirements in the styleProfile section and avoid any stylystic devices which are identified as negatives. 
        
         `
     }
