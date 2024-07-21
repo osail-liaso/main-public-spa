@@ -170,7 +170,7 @@
                     <Button @click="paintAction('applyStyleBrush')" label="Apply Style" class="p-button-help" />
                   
                 </div>
-{{ selectedStyleBrush }}
+<!-- {{ selectedStyleBrush }} -->
 
                 <!-- <div class="button-row">
           <Button @click="paintAction('autoEnhance')"
