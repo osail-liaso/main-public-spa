@@ -137,6 +137,15 @@ let models = ref([
         name: { en: 'OpenAI GPT-4 Turbo (128k)', fr: 'OpenAI GPT-4 Turbo (128k)' }
     },
     {
+        concurrentInstances: 20,
+        provider: 'openAi',
+        maxTokens: 128000,
+        per1kInput: 0.01,
+        per1kOutput: 0.03,
+        model: 'gpt-4o',
+        name: { en: 'OpenAI GPT-4o', fr: 'OpenAI GPT-4o' }
+    },    
+    {
         concurrentInstances: 5,
         provider: 'anthropic',
         maxTokens: 200000,
