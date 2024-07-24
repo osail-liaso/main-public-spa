@@ -9,7 +9,7 @@
         systemPrompt="Help me to build out this idea"
         :userPrompt="accomplishmentPrompt.text"
         :messageHistory="[]"
-        :model="models[0]"
+        :model="modelSelected"
         :temperature="0.2"
         @messageComplete="(payload) => messageCompleteAccomplishment(accomplishmentPrompt, payload)"
         @messagePartial="(payload) => messagePartialAccomplishment(accomplishmentPrompt, payload)"
@@ -26,7 +26,7 @@
             :systemPrompt="segment.systemPrompt"
             :userPrompt="segment.userPrompt"
             :messageHistory="[]"
-            :model="models[0]"
+            :model="modelSelected"
             :temperature="0.2"
             @messageComplete="(payload) => messageComplete(segment, payload)"
             @messagePartial="(payload) => messagePartial(segment, payload)"
@@ -48,7 +48,13 @@
                         <Textarea id="accomplishment" v-model="accomplishmentPrompt.text" autoResize rows="auto" class="w-full p-inputtext-lg editable-container" autocomplete="off" />
                     </span>
 
-                    <Button @click="accomplishmentPrompt.trigger = !accomplishmentPrompt.trigger"> Let's Go! </Button>
+
+                    <span class="w-full">
+                        <Dropdown id="modelSelect" v-model="modelSelected" :options="models" optionLabel="name.en" placeholder="Select a Model"></Dropdown>
+                    </span><br/>
+
+
+                    <Button @click="accomplishmentPrompt.trigger = !accomplishmentPrompt.trigger" class = "mt-1"> Let's Go! </Button>
                 </div>
 
                 <!-- Main interaction area / Painter Canvas-->
@@ -150,8 +156,11 @@ let models = ref([
     }
 ]);
 
+let modelSelected = ref(null)
+
 onMounted(() => {
     //Create the new segments to start off the app
+    modelSelected.value = models.value[0];
     textSegments.value.push(createNewSegment('\u200B', true));
     addHistory(textSegments.value[textSegments.value.length - 1], 'user');
 
