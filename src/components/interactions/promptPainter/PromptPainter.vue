@@ -146,6 +146,15 @@ let models = ref([
         name: { en: 'OpenAI GPT-4o', fr: 'OpenAI GPT-4o' }
     },    
     {
+        concurrentInstances: 1,
+        provider: 'groq',
+        maxTokens: 8192,
+        per1kInput: 0.01,
+        per1kOutput: 0.03,
+        model: 'gemma2-9b-it',
+        name: { en: 'Google Gemma 2-9B', fr: 'Google Gemma 2-9B' }
+    },    
+    {
         concurrentInstances: 5,
         provider: 'anthropic',
         maxTokens: 200000,

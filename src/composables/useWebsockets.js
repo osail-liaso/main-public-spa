@@ -1,3 +1,5 @@
+//Now deprecated - replaced by the useRealTime.js composable using Socket.io as WebSockets are commonly blocked by VPNs and Proxies
+
 import env from "@/env.js"
 
 import { ref, computed } from 'vue';

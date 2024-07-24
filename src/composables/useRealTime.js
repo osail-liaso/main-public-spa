@@ -48,8 +48,8 @@ export function useRealTime() {
 
             {
                 reconnection: true,             // whether to reconnect automatically
-                reconnectionAttempts: 3, // number of reconnection attempts before giving up
-                reconnectionDelay: 1000,        // initial delay in ms to start reconnections
+                reconnectionAttempts: Infinity, // number of reconnection attempts before giving up
+                reconnectionDelay: 3000,        // initial delay in ms to start reconnections
                 reconnectionDelayMax: 5000,     // maximum delay in ms between reconnection attempts
                 randomizationFactor: 0.5        // randomization factor for delay calculation
             }
