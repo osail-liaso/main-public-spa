@@ -145,6 +145,16 @@ let models = ref([
         model: 'gpt-4o',
         name: { en: 'OpenAI GPT-4o', fr: 'OpenAI GPT-4o' }
     },    
+
+    {
+        concurrentInstances: 5,
+        provider: 'mistral',
+        maxTokens: 128000,
+        per1kInput: 0.01,
+        per1kOutput: 0.03,
+        model: 'mistral-large-latest',
+        name: { en: 'Mistral Large 2', fr: 'Mistral Large 2' }
+    },    
     {
         concurrentInstances: 1,
         provider: 'groq',
