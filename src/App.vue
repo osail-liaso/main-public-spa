@@ -7,13 +7,17 @@
 import env from "@/env.js"
 import { onMounted } from 'vue'
 
-import { useWebsockets } from '@/composables/useWebsockets.js'
-const { websocketConnection } = useWebsockets()
+import { useRealTime } from '@/composables/useRealTime.js'
+const { websocketConnection, socketIoConnection } = useRealTime()
 
 
 onMounted(()=>{
     console.log("App Booted with .env", env);
-    websocketConnection();
+
+    //One protocol or the other is recommended
+    // websocketConnection();
+    socketIoConnection();
+    
 
 })
 

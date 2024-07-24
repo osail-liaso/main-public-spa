@@ -1,6 +1,6 @@
 {
     "name": "main-public-spa",
-    "version": "0.0.24",
+    "version": "0.0.25",
     "scripts": {
         "dev": "vite --mode development",
         "build": "vite build --mode production",
@@ -16,6 +16,7 @@
         "primeicons": "^7.0.0",
         "primevue": "^3.53.0",
         "reveal.js": "^5.1.0",
+        "socket.io-client": "^4.7.5",
         "uuid": "^10.0.0",
         "vue": "^3.4.31",
         "vue-router": "^4.1.5"

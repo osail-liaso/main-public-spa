@@ -82,7 +82,7 @@ import EditContent from "@/components/common/EditContent.vue";
 import MarkdownReveal from "@/components/common/MarkdownReveal.vue";
 
 //Composables
-import { useWebsockets } from "@/composables/useWebsockets.js";
+import { useRealTime } from "@/composables/useRealTime.js";
 
  const {
   wsUuid,
@@ -90,7 +90,7 @@ import { useWebsockets } from "@/composables/useWebsockets.js";
   registerSession,
   unregisterSession,
   sendToServer,
-} = useWebsockets();
+} = useRealTime();
 
 //Props
 const props = defineProps({
