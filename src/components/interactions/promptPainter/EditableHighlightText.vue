@@ -773,7 +773,7 @@ function paintAction(action, comment = null, cIndex = null) {
         #Format Instructions
         Always response in a JSON array of objects. Do not respond with any other text other than the json array
         Here is an example of the correct format.
-        [{role:'system', text: The critique and any recommended actions}]
+        [{"role":"system", "text": "The critique and any recommended actions"}]
     `;
     }
 

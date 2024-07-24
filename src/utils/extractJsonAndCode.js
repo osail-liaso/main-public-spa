@@ -1,4 +1,5 @@
- 
+import JSON5 from 'json5'
+
 export function extractData(text) {
     let codes = [];
     let validJSONs = [];
@@ -8,10 +9,11 @@ export function extractData(text) {
             // Step 1 & 2: Extract code blocks and remove them from the text
 
             try {
-                const parsedTextJSON = JSON.parse(text);
+                const parsedTextJSON = JSON5.parse(text);
                 validJSONs.push(parsedTextJSON);
                 return { json: validJSONs, code: codes };  // Return immediately if the whole text is valid JSON
             } catch (e) {
+                console.log("Not valid json")
                 // If not a valid JSON, proceed with the usual extraction logic
             }
 

@@ -9,7 +9,7 @@
         systemPrompt="Help me to build out this idea"
         :userPrompt="accomplishmentPrompt.text"
         :messageHistory="[]"
-        :model="models[0]"
+        :model="models[1]"
         :temperature="0.2"
         @messageComplete="(payload) => messageCompleteAccomplishment(accomplishmentPrompt, payload)"
         @messagePartial="(payload) => messagePartialAccomplishment(accomplishmentPrompt, payload)"
@@ -26,7 +26,7 @@
             :systemPrompt="segment.systemPrompt"
             :userPrompt="segment.userPrompt"
             :messageHistory="[]"
-            :model="models[0]"
+            :model="models[1]"
             :temperature="0.2"
             @messageComplete="(payload) => messageComplete(segment, payload)"
             @messagePartial="(payload) => messagePartial(segment, payload)"
@@ -138,6 +138,15 @@ let models = ref([
         per1kOutput: 0.024,
         model: 'claude-3-5-sonnet-20240620',
         name: { en: 'Claude 3.5 Sonnet', fr: 'Claude 3.5 Sonnet' }
+    },
+    {
+        concurrentInstances: 1,
+        provider: 'groq',
+        maxTokens: 128000,
+        per1kInput: 0,
+        per1kOutput: 0,
+        model: 'llama-3.1-70b-versatile',
+        name: { en: 'Groq Llama 3.1-70b Versatile', fr: 'Groq Llama 3.1-70b Versatile' }
     }
 ]);
 
@@ -523,6 +532,7 @@ function messagePartial(segment, payload) {
 }
 
 function messageComplete(segment, payload) {
+    console.log(payload)
     if (payload?.message?.length) {
         //Commit the current segment to history
 
