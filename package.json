@@ -1,6 +1,6 @@
 {
     "name": "main-public-spa",
-    "version": "0.0.26",
+    "version": "0.0.27",
     "scripts": {
         "dev": "vite --mode development",
         "build": "vite build --mode production",
