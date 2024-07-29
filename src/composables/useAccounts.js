@@ -2,7 +2,6 @@ import env from "@/env.js"
 import { ref, computed } from 'vue'
 // import axios from "axios";
 import configuredAxios from "@/utils/axios.js"
-import { notify } from "notiwind"
 
 let newUser = ref({
     username: null,
@@ -68,10 +67,8 @@ export function useAccounts() {
             try {
                 var params = {emailAddress};
                 await configuredAxios.post('/accounts/mailingList', params);
-                notify({ group: "success", title: "Success", text: "Welcome! You've joined the mailing list for future updates." }, 4000) // 4s
             }
             catch (error) {
-                notify({ group: "failure", title: "Error", text: "Error joining the mailing list. Please try again" }, 4000) // 4s
                 console.log("Error", error)
                 reject(error);
 
@@ -89,13 +86,11 @@ export function useAccounts() {
                 // console.log("Params", params)
                 var response = await configuredAxios.post('/accounts', params);
                 responseMessage.value = response.data.payload;
-                notify({ group: "success", title: "Success", text: "Account created successfully" }, 4000) // 4s
                 resolve(responseMessage.value);
                 //TODO enhance to receive the code as well
                 // console.log("Loaded Personas", personas.value)
             }
             catch (error) {
-                notify({ group: "failure", title: "Error", text: "Error creating your account. Check your username and passwords and try again." }, 4000) // 4s
                 console.log("Error", error)
                 reject(error);
 
@@ -109,7 +104,7 @@ export function useAccounts() {
             try {
                 var params = { username, password };
                 var response = await configuredAxios.post('/accounts/login', params);
-                console.log("Login Response", response)
+                // console.log("Login Response", response)
                 resolve(response.data.payload);
             }
             catch (error) {
@@ -129,7 +124,6 @@ export function useAccounts() {
             resolve(true);
         }
         catch (error) {
-            notify({ group: "failure", title: "Error", text: "Error loading your account info. Please  and try again." }, 4000) // 4s
             console.log("Error", error);
             reject(error);
         }
@@ -142,12 +136,9 @@ export function useAccounts() {
         try {
             let results = await configuredAxios.post('/accounts/own/update',{account});
             accountInfo.value = results.data.payload;
-            notify({ group: "success", title: "Success", text: "Account info updated." }, 4000) // 4s
-
             resolve(true);
         }
         catch (error) {
-            notify({ group: "failure", title: "Error", text: "Error loading your account info. Please  and try again." }, 4000) // 4s
             console.log("Error", error);
             reject(error);
         }
@@ -177,11 +168,9 @@ export function useAccounts() {
               // Optionally, revoke the blob URL to free up memory
               window.URL.revokeObjectURL(url);
 
-              notify({ group: "success", title: "Success", text: "File download complete. Check your downloads folder." }, 4000) // 4s
 
         }
         catch (error) {
-            notify({ group: "failure", title: "Error", text: "Error downloading account info. Please login and try again." }, 4000) // 4s
             console.log("Error", error);
             reject(error);
         }
@@ -189,7 +178,6 @@ export function useAccounts() {
     }
 
     async function ownDataUpload(file) {   
-        notify({ group: "success", title: "Success", text: "File upload beginning. Please wait." }, 4000) // 4s
 
         return new Promise(async (resolve, reject) => {
         try {
@@ -198,11 +186,9 @@ export function useAccounts() {
             let results = await configuredAxios.post('/accounts/own/data/upload', formData, {headers:{'Content-Type': 'multipart/form-data'}});
             uploadInfo.value = results.data.payload;
             console.log('File upload rejections', uploadInfo.value)
-            notify({ group: "success", title: "Success", text: `File upload complete with ${uploadInfo.value.length} rejections` }, 4000) // 4s
             resolve(true);
         }
         catch (error) {
-            notify({ group: "failure", title: "Error", text: "Error downloading account info. Please login and try again." }, 4000) // 4s
             console.log("Error", error);
             reject(error);
         }
@@ -214,12 +200,9 @@ export function useAccounts() {
         try {
             let results = await configuredAxios.post('/accounts/own/data/delete');
             accountInfo.value = results.data.payload;
-            notify({ group: "success", title: "Success", text: `All account data deleted successfully` }, 4000) // 4s
-
             resolve(true);
         }
         catch (error) {
-            notify({ group: "failure", title: "Error", text: "Error deleting account info. Please login and try again." }, 4000) // 4s
             console.log("Error", error);
             reject(error);
         }
@@ -231,11 +214,9 @@ export function useAccounts() {
         try {
             let results = await configuredAxios.post('/accounts/own/delete');
             accountInfo.value = results.data.payload;
-            notify({ group: "success", title: "Success", text: `Account deleted successfully` }, 4000) // 4s
             resolve(true);
         }
         catch (error) {
-            notify({ group: "failure", title: "Error", text: "Error loading your account. Please login and try again." }, 4000) // 4s
             console.log("Error", error);
             reject(error);
         }

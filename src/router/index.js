@@ -1,6 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import AppLayout from '@/layout/AppLayout.vue';
 
+import { useTokens } from '@/composables/useTokens.js';
+
+
 const router = createRouter({
     history: createWebHistory(),
     routes: [
@@ -196,4 +199,26 @@ const router = createRouter({
     ]
 });
 
+
+// Create a navigation guard
+router.beforeEach((to, from, next) => {
+  
+    const { token, recallTokens } = useTokens();
+
+    // Call recallTokens to sync the token state with localStorage
+    recallTokens();
+
+    // Check if the user is navigating to a page that requires authentication
+    const authRequired = !['/', '/auth/login'].includes(to.path);
+  
+    // If authentication is required and tokens is null, redirect to /login
+    if (authRequired && token.value === null) {
+      next('/auth/login');
+    } else {
+      // Otherwise, proceed with the navigation
+      next();
+    }
+  });
+
+  
 export default router;

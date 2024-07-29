@@ -53,7 +53,8 @@ configuredAxios.interceptors.response.use(
         return Promise.resolve(response);
     },
     error => {
-        if (error.response.status === 403 || error.response.status === 401) {
+        console.log('Error', error)
+        if (error?.response?.status === 403 || error?.response?.status === 401) {
             unsetTokens();
             // Consider redirecting to login or showing a message instead of reloading
             // window.location.reload(true);

@@ -20,8 +20,8 @@ const logoUrl = computed(() => {
 
 function toLogin()
 {
-    router.push('/dashboard');
-    // router.push('/auth/login');
+    // router.push('/dashboard');
+    router.push('/auth/login');
 }
 
 </script>
