@@ -102,18 +102,13 @@ export function useAccounts() {
     function login(username, password) {
         return new Promise(async (resolve, reject) => {
             try {
-                var params = { username, password };
-                var response = await configuredAxios.post('/accounts/login', params);
-                // console.log("Login Response", response)
+                var response = await configuredAxios.post('/accounts/login', { username, password });
                 resolve(response.data.payload);
             }
             catch (error) {
-                console.log("Error", error)
                 reject(error);
-
             }
         })
-
     }
    
     async function ownAccountInfo() {   

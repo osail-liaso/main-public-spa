@@ -1,10 +1,12 @@
 <script setup>
-import { useLayout } from '@/layout/composables/layout';
 import { ref, computed, onMounted } from 'vue';
 import AppConfig from '@/layout/AppConfig.vue';
+
+import { useLayout } from '@/layout/composables/layout';
+const { layoutConfig } = useLayout();
+
 import { useTokens } from '@/composables/useTokens.js';
 const {  setTokens, unsetTokens } = useTokens();
-
 
 import { useAccounts } from '@/composables/useAccounts.js';
 const {  login } = useAccounts();
@@ -13,13 +15,12 @@ import { useRouter } from 'vue-router';
 const router = useRouter();
 
 
+import Message from 'primevue/inlinemessage';
 
-const { layoutConfig } = useLayout();
+let loginError = ref(false)
 const username = ref();
 const password = ref();
-
 const checked = ref(false);
-
 const logoUrl = computed(() => {
     return `/layout/images/${layoutConfig.darkTheme.value ? 'logo-white' : 'logo-dark'}.svg`;
 });
@@ -31,15 +32,19 @@ onMounted(()=>{
 function doLogin()
 {
     login(username.value, password.value).then((success)=>{
+        loginError.value = false;
         setTokens(success.token, success.tokenDecoded);
         router.push('/dashboard');
     }).catch((error)=>{
-        console.log('error', error)
+        loginError.value = true;
+        console.log('Login error:', error)
     })
 }
 </script>
 
 <template>
+        <Toast />
+
     <div class="surface-ground flex align-items-center justify-content-center min-h-screen min-w-screen overflow-hidden">
         <div class="flex flex-column align-items-center justify-content-center">
             <img :src="logoUrl" alt="OSAIL-LIASO logo" class="mb-5 w-6rem flex-shrink-0" />
@@ -67,6 +72,8 @@ function doLogin()
                             <!-- <a class="font-medium no-underline ml-2 text-right cursor-pointer" style="color: var(--primary-color)">Forgot password?</a> -->
                         </div>
                         <Button @click = "doLogin" label="Sign In" class="w-full p-3 text-xl"></Button>
+                        <Message v-if = "loginError" severity = "error" :closable="false"  class = "w-full mt-2">Login failed. Please try again.</Message>
+
                     </div>
                 </div>
             </div>
