@@ -37,7 +37,6 @@ const lineOptions = ref(null);
 const productService = new ProductService();
 
 onMounted(() => {
-    getModels();
     productService.getProductsSmall().then((data) => (products.value = data));
     
 });

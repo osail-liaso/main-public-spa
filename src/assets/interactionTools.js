@@ -58,10 +58,38 @@ const interactionTools = [
     "momentLastUpdated": "2023-07-08T00:00:00Z", // The timestamp of the last update
     "status": "active", // The status of the tool, can be "active" or "inactive"
     "publishStatus": "published", // The status of the tool, can be "published" or "unpublished". Published means its generally available to all users.
-    "admin": true, // A boolean indicating if the tool is for admin use only
-    "models": ["all", "gpt-4-1106-preview", "claude-3-5-sonnet-20240620"] // An array of compatible models. All allows any model to use this, or it can be constrained to specific models.
+    "admin": false, // A boolean indicating if the tool is for admin use only
+    "models": ["all"] // An array of compatible models. All allows any model to use this, or it can be constrained to specific models.
   },
 
+
+
+  {
+    "version":"1",
+    "systemName":"iterativeChunking",
+    "path": "/dashboard/interactions/iterativeChunking",
+    "icon":"pi pi-fw pi-palette",
+    "menu": {
+      "en": "Chunking", // The sidebar menu name of the tool in English
+      "fr": "Peintre" // The sidebar menu name of the tool in French
+    },
+    "name": {
+      "en": "Iterative Chunking", // The name of the tool in English
+      "fr": "Peintre d'Invite" // The name of the tool in French
+    },
+    "description": {
+      "en": "Iterative chunking breaks down any length of text into logical semantic chunks and lets you then perform a final quality assurance", // Description in English
+      "fr": "Le Peintre d'Invite est un outil innovant pour générer et segmenter des documents ou des sorties de modèles de langage, puis pour interagir avec chacun de ces segments en appliquant des 'filtres' et d'autres contrôles afin d'étendre, de réduire, de résumer, de changer le ton, ou de fournir des instructions spéciales pour modifier le contenu. Une fois satisfait, vos segments se rassemblent et peuvent être téléchargés pour une édition ultérieure au format Word." // Description in French
+    },
+    "videos": [], // The name of the person or entity that created the tool
+    "createdBy": "Janak Alford ", // The name of the person or entity that created the tool
+    "momentCreated": "2023-08-04T00:00:00Z", // The timestamp when the tool was created
+    "momentLastUpdated": "2023-08-04T00:00:00Z", // The timestamp of the last update
+    "status": "active", // The status of the tool, can be "active" or "inactive"
+    "publishStatus": "published", // The status of the tool, can be "published" or "unpublished". Published means its generally available to all users.
+    "admin": false, // A boolean indicating if the tool is for admin use only
+    "models": ["all"] // An array of compatible models. All allows any model to use this, or it can be constrained to specific models.
+  },
 
   {
     "version":"1",

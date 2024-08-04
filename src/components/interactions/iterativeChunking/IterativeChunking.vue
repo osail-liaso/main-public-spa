@@ -1,51 +1,34 @@
 <template>
     <!-- The starting socket, separated from the textSegments -->
     <Socket
-        v-if="accomplishmentPrompt.uuid"
-        v-show="false"
-        :sessionId="accomplishmentPrompt.uuid"
-        :trigger="accomplishmentPrompt.trigger"
+        v-if="initialPrompt.uuid"
+        v-show="true"
+        :sessionId="initialPrompt.uuid"
+        :trigger="initialPrompt.trigger"
         :persona="null"
-        systemPrompt="Help me to build out this idea"
-        :userPrompt="accomplishmentPrompt.text"
+        :systemPrompt="initialSystemPrompt"
+        :userPrompt="initialPrompt.text"
         :messageHistory="[]"
         :model="selectedModel"
         :temperature="0.2"
-        @messageComplete="(payload) => messageCompleteAccomplishment(accomplishmentPrompt, payload)"
-        @messagePartial="(payload) => messagePartialAccomplishment(accomplishmentPrompt, payload)"
-        @messageError="(payload) => messageErrorAccomplishment(accomplishmentPrompt, payload)"
+        @messageComplete="(payload) => messageCompleteInitial(initialPrompt, payload)"
+        @messagePartial="(payload) => messagePartialInitial(initialPrompt, payload)"
+        @messageError="(payload) => messageErrorInitial(initialPrompt, payload)"
     />
-
-    <!-- Each socket for the text segments -->
-    <template v-for="(segment, index) in textSegments" :key="'socket' + segment.uuid">
-        <Socket
-            v-show="false"
-            :sessionId="segment.uuid"
-            :trigger="segment.trigger"
-            :persona="null"
-            :systemPrompt="segment.systemPrompt"
-            :userPrompt="segment.userPrompt"
-            :messageHistory="[]"
-            :model="selectedModel"
-            :temperature="0.2"
-            @messageComplete="(payload) => messageComplete(segment, payload)"
-            @messagePartial="(payload) => messagePartial(segment, payload)"
-            @messageError="(payload) => messageError(segment, payload)"
-        >
-        </Socket>
-    </template>
+ 
+    
 
     <div class="layout-wrapper">
         <Sidebar v-model:visible="sidebarVisible">
             <!-- Add your sidebar content here -->
         </Sidebar>
 
-        <div class="painter-layout-main">
+        <div class="layout-main">
             <div class="grid">
-                <div class="col-12 md:col-8 bg-white" v-show="true" v-if="textSegments.length">
+                <div class="col-12 md:col-12 bg-white" v-show="true" v-if="textSegments.length">
                     <span class="w-full">
-                        <label class="text-lg w-full" for="accomplishment">What are we accomplishing today?</label>
-                        <Textarea id="accomplishment" v-model="accomplishmentPrompt.text" autoResize rows="auto" class="w-full p-inputtext-lg editable-container" autocomplete="off" />
+                        <label class="text-lg w-full" for="accomplishment">What document are we chunking today?</label>
+                        <Textarea id="accomplishment" v-model="initialPrompt.text" autoResize rows="auto" class="w-full p-inputtext-lg editable-container" autocomplete="off" />
                     </span>
 
 
@@ -54,44 +37,16 @@
                     </span><br/>
 
 
-                    <Button @click="accomplishmentPrompt.trigger = !accomplishmentPrompt.trigger" class = "mt-1"> Let's Go! </Button>
+                    <Button @click="initialPrompt.trigger = !initialPrompt.trigger" class = "mt-1"> Let's Go! </Button>
                 </div>
 
-                <!-- Main interaction area / Painter Canvas-->
-                <div class="col-12 lg:col-12 mb-3 lg:mb-0">
-                    <p class="text-lg">Prompt Canvas</p>
-                    <EditableHighlightText
-                        id="promptCanvas"
-                        v-model:textSegments="textSegments"
-                        :cursorSelect="cursorSelect"
-                        :styleBrushes="styleBrushes"
-                        @changeSegmentSelected="changeSegmentSelected"
-                        @updateSegment="updateSegment"
-                        @update:textSegments="handleTextSegmentsUpdate"
-                        @cursorUpdate="handleCursorUpdate"
-                        @splitSegment="handleSplitSegment"
-                        @paintAction="handlePaintAction"
-                        @undoHistory="handleUndoHistory"
-                        @redoHistory="handleRedoHistory"
-                        @blurUpdate="handleBlurUpdate"
-                        @toggleComments="handleToggleComments"
-                        @deleteComments="handleDeleteComments"
-                        @addStyleBrush="handleAddStyleBrush"
-                        @uploadedBrushes="handleUploadedBrushes"
-                    >
-                        <!-- Canvas controls and features -->
-                        <!-- {{ textSegments }} -->
-
-                        <div class="button-row mt-1">
-                            <Button @click="copyAllTextSegments" class="mr-2"> Copy All Segments </Button>
-                            <Button @click="deleteSelectedSegment" severity="warning" class="mr-2"> Delete Selected Segment </Button>
-                            <Button @click="mergeAllTextSegments" severity="warning"> Merge All Segments </Button>
-                        </div>
-                    </EditableHighlightText>
-                </div>
+ 
             </div>
         </div>
-    </div>
+
+        <!-- {{ textSegments?.[0]?.json }} -->
+  1  </div>
+
 </template>
 
 <script setup>
@@ -105,38 +60,38 @@ import Textarea from 'primevue/textarea';
 import Button from 'primevue/button';
 import { useToast } from 'primevue/usetoast';
 
+import  {useModels}  from '@/composables/useModels.js';
+const {adminModels, selectedModel} = useModels();
+
 //Helper Functions
 import { extractData } from '@/utils/extractJsonAndCode.js';
 
 //Custom OSAIL components
 import Socket from '@/components/common/Socket.vue';
-import EditableHighlightText from '@/components/interactions/promptPainter/EditableHighlightText.vue';
-
-//Composables
-import  {useModels}  from '@/composables/useModels.js';
-const {adminModels, selectedModel} = useModels();
-
 
 const toast = useToast();
 const sidebarVisible = ref(false);
-const autoEnhance = ref(false);
 
 const textSegments = ref([]);
 const textSegmentSelected = ref(null);
 const cursorSelect = ref({ segmentIndex: 0, offset: 0 });
 const currentCursor = ref({ segmentIndex: 0, offset: 0 });
-const accomplishmentPrompt = ref({});
 
-const styleBrushes = ref([]);
+const initialPrompt = ref({});
+ const initialSystemPrompt = ref(`
+ Evaluate the attached text and identify the first 20 characters of any area which represents a change in topic or structure. 
+ We are seeking areas of semantic difference, where the meaning of the subject of the text changes. 
+ This may occur with a header, like a number or a specific title ('Chapter', 'Section', 'Subject', 'Clause') or it may not be indicated at all but contain text which is semantically different from whatever cames before or comes after it. 
+ Return the results in a JSON format, where each string within the results array contains the first 30-50 characters of the string verbatim (capturing the entire header of first sentence, if possible). 
+ Be as comprehensive as possible; ensure that all semantic changes are highlighted in the document. Maximize the use of response tokens, and never return placeholder text
+ {"results":[]}
+ `)
 
- 
 onMounted(() => {
     //Create the new segments to start off the app
- 
     textSegments.value.push(createNewSegment('\u200B', true));
     addHistory(textSegments.value[textSegments.value.length - 1], 'user');
-
-    accomplishmentPrompt.value = createNewSegment('', false);
+    initialPrompt.value = createNewSegment('', false);
 });
 
 // Helper functions - Create new segment with all the standard attributes
@@ -280,7 +235,7 @@ function handleSplitSegment({ uuid, index, cursorIndex, splitType, atEndOfSegmen
     textSegments.value = newSegments;
 }
 
-function handlePaintAction({ action, prompt }) {
+function handleAction({ action, prompt }) {
     let socketAction = true;
     if (currentCursor?.value) {
         let segment = textSegments.value[currentCursor.value.segmentIndex];
@@ -589,7 +544,7 @@ function messageError(segment, payload) {
     console.log('Error', payload);
 }
 
-function messagePartialAccomplishment(segment, payload) {
+function messagePartialInitial(segment, payload) {
     if (currentCursor?.value.segmentIndex < textSegments.value.length) {
         if (payload?.message?.length) {
             textSegments.value[currentCursor.value.segmentIndex].messagePartial = payload.message;
@@ -598,7 +553,7 @@ function messagePartialAccomplishment(segment, payload) {
     }
 }
 
-function messageCompleteAccomplishment(segment, payload) {
+function messageCompleteInitial(segment, payload) {
     //Make sure the currentCursor is accurate
     if (currentCursor?.value.segmentIndex < textSegments.value.length) {
         if (payload?.message?.length) {
@@ -608,11 +563,13 @@ function messageCompleteAccomplishment(segment, payload) {
 
             //Update the history for the subject
             addHistory(textSegments.value[currentCursor.value.segmentIndex], 'system');
+
+            textSegments.value[currentCursor.value.segmentIndex].json = extractData(textSegments.value[currentCursor.value.segmentIndex].text)
         }
     }
 }
 
-function messageErrorAccomplishment(segment, payload) {
+function messageErrorInitial(segment, payload) {
     console.log('Error', payload);
 }
 
@@ -695,13 +652,13 @@ function deleteSelectedSegment() {
 </script>
 
 <style scoped>
-.layout-wrapper {
+.painter-layout-wrapper {
     display: flex;
     min-height: 100vh;
     /* padding-top: 20px; */
 }
 
-.painter-layout-main {
+.layout-main {
     flex: 1;
     padding: 1rem;
 }

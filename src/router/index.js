@@ -43,6 +43,12 @@ const router = createRouter({
                     component: () => import('@/views/interactions/PromptPainter.vue')
                 },
 
+                {
+                    path: '/dashboard/interactions/iterativeChunking',
+                    name: 'iterativeChunking',
+                    component: () => import('@/views/interactions/IterativeChunking.vue')
+                },
+
 
                 {
                     path: '/dashboard/formlayout',
