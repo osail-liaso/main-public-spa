@@ -77,7 +77,8 @@ const initialSystemPrompt = ref(`
  We are seeking areas of semantic difference, where the meaning of the subject of the text changes. 
  This may occur with a header, like a number or a specific title ('Chapter', 'Section', 'Subject', 'Clause') or it may not be indicated at all but contain text which is semantically different from whatever cames before or comes after it. 
  Return the results in a JSON format, where each string within the results array contains the first 30-50 characters of the string verbatim (capturing the entire header of first sentence, if possible). 
- Be as comprehensive as possible; ensure that all semantic changes are highlighted in the document. Maximize the use of response tokens, and never return placeholder text
+ Be as comprehensive as possible; ensure that all semantic changes are highlighted in the document. Maximize the use of response tokens, and never return placeholder text.
+ Return always at least one result.
  {"results":[]}
  `);
 
@@ -129,7 +130,7 @@ function getIndexesFromMatchStrings(matchArray) {
         if (thisIndex > -1) matchedPositions.push(thisIndex);
     });
 
-    if (matchPositions.length < matchArray.length) console.log('Error, at least one of the strings not found in the text. ', { matchArray, matchedPositions });
+    if (matchedPositions.length < matchArray.length) console.log('Error, at least one of the strings not found in the text. ', { matchArray, matchedPositions });
     else console.log("Matched positions in the original string", matchedPositions)
     return matchedPositions;
 }
