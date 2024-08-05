@@ -15,8 +15,6 @@
         @messagePartial="(payload) => messagePartialInitial(initialPrompt, payload)"
         @messageError="(payload) => messageErrorInitial(initialPrompt, payload)"
     />
- 
-    
 
     <div class="layout-wrapper">
         <Sidebar v-model:visible="sidebarVisible">
@@ -31,22 +29,18 @@
                         <Textarea id="accomplishment" v-model="initialPrompt.text" autoResize rows="auto" class="w-full p-inputtext-lg editable-container" autocomplete="off" />
                     </span>
 
-
                     <span class="w-full">
-                        <Dropdown id="modelSelect" v-model="selectedModel" :options="adminModels" optionLabel="name.en" placeholder="Select a Model"></Dropdown>
-                    </span><br/>
+                        <Dropdown id="modelSelect" v-model="selectedModel" :options="adminModels" optionLabel="name.en" placeholder="Select a Model"></Dropdown> </span
+                    ><br />
 
-
-                    <Button @click="initialPrompt.trigger = !initialPrompt.trigger" class = "mt-1"> Let's Go! </Button>
+                    <Button @click="initialPrompt.trigger = !initialPrompt.trigger" class="mt-1"> Let's Go! </Button>
                 </div>
-
- 
             </div>
         </div>
 
         <!-- {{ textSegments?.[0]?.json }} -->
-  1  </div>
-
+        1
+    </div>
 </template>
 
 <script setup>
@@ -60,8 +54,8 @@ import Textarea from 'primevue/textarea';
 import Button from 'primevue/button';
 import { useToast } from 'primevue/usetoast';
 
-import  {useModels}  from '@/composables/useModels.js';
-const {adminModels, selectedModel} = useModels();
+import { useModels } from '@/composables/useModels.js';
+const { adminModels, selectedModel } = useModels();
 
 //Helper Functions
 import { extractData } from '@/utils/extractJsonAndCode.js';
@@ -78,14 +72,14 @@ const cursorSelect = ref({ segmentIndex: 0, offset: 0 });
 const currentCursor = ref({ segmentIndex: 0, offset: 0 });
 
 const initialPrompt = ref({});
- const initialSystemPrompt = ref(`
+const initialSystemPrompt = ref(`
  Evaluate the attached text and identify the first 20 characters of any area which represents a change in topic or structure. 
  We are seeking areas of semantic difference, where the meaning of the subject of the text changes. 
  This may occur with a header, like a number or a specific title ('Chapter', 'Section', 'Subject', 'Clause') or it may not be indicated at all but contain text which is semantically different from whatever cames before or comes after it. 
  Return the results in a JSON format, where each string within the results array contains the first 30-50 characters of the string verbatim (capturing the entire header of first sentence, if possible). 
  Be as comprehensive as possible; ensure that all semantic changes are highlighted in the document. Maximize the use of response tokens, and never return placeholder text
  {"results":[]}
- `)
+ `);
 
 onMounted(() => {
     //Create the new segments to start off the app
@@ -122,8 +116,22 @@ function createNewSegment(text = '', highlighted = false) {
 
         //Status of the segment
         processing: false,
-        active: true
+        active: true,
+        startCursor: -1, //The location of the cursor from the original body of text.
+        endCursor: -1 //The location of the end cursor from the original body of text.
     };
+}
+
+function getIndexesFromMatchStrings(matchArray) {
+    let matchedPositions = [];
+    matchArray.forEach((str) => {
+        let thisIndex = initialPrompt.value.text.indexOf(str);
+        if (thisIndex > -1) matchedPositions.push(thisIndex);
+    });
+
+    if (matchPositions.length < matchArray.length) console.log('Error, at least one of the strings not found in the text. ', { matchArray, matchedPositions });
+    else console.log("Matched positions in the original string", matchedPositions)
+    return matchedPositions;
 }
 
 function getSegmentFromUuid(uuid) {
@@ -355,7 +363,6 @@ function handleAction({ action, prompt }) {
             segment.comments = [];
         }
 
-
         //Maybe some actions don't trigger a socket
         //Future use
         if (socketAction) {
@@ -365,7 +372,7 @@ function handleAction({ action, prompt }) {
             segment.trigger = !segment.trigger;
         }
 
-        console.log("segment to trigger", segment);
+        console.log('segment to trigger', segment);
     }
 
     if (action == 'autoEnhance') {
@@ -445,16 +452,13 @@ function handleDeleteComments(commentsArray) {
     });
 }
 
-
-function handleAddStyleBrush({ name, segment })
-{
-    styleBrushes.value.push({name,style:segment.text})
+function handleAddStyleBrush({ name, segment }) {
+    styleBrushes.value.push({ name, style: segment.text });
 }
 
-function handleUploadedBrushes(brushesArray)
-{
+function handleUploadedBrushes(brushesArray) {
     //Merge the brushes back in
-    styleBrushes.value = [...styleBrushes.value, ...brushesArray]
+    styleBrushes.value = [...styleBrushes.value, ...brushesArray];
 }
 
 function messagePartial(segment, payload) {
@@ -468,7 +472,7 @@ function messagePartial(segment, payload) {
 }
 
 function messageComplete(segment, payload) {
-    console.log(payload)
+    console.log(payload);
     if (payload?.message?.length) {
         //Commit the current segment to history
 
@@ -564,7 +568,11 @@ function messageCompleteInitial(segment, payload) {
             //Update the history for the subject
             addHistory(textSegments.value[currentCursor.value.segmentIndex], 'system');
 
-            textSegments.value[currentCursor.value.segmentIndex].json = extractData(textSegments.value[currentCursor.value.segmentIndex].text)
+            let thisJson = extractData(textSegments.value[currentCursor.value.segmentIndex].text);
+            if (thisJson?.json?.length) {
+                textSegments.value[currentCursor.value.segmentIndex].json = thisJson;
+                getIndexesFromMatchStrings(thisJson.json[0].results);
+            }
         }
     }
 }

@@ -1,6 +1,6 @@
 {
     "name": "main-public-spa",
-    "version": "0.0.34",
+    "version": "0.0.35",
     "scripts": {
         "dev": "vite --mode development",
         "build": "vite build --mode production",
@@ -23,13 +23,13 @@
         "vue-router": "^4.1.5"
     },
     "devDependencies": {
-        "@import-meta-env/cli": "^0.1.7",
-        "@import-meta-env/unplugin": "^0.1.8",
+        "@import-meta-env/cli": "^0.6.9",
+        "@import-meta-env/unplugin": "^0.5.2",
         "@rushstack/eslint-patch": "^1.1.4",
         "@vitejs/plugin-vue": "^4.2.1",
         "@vue/compiler-sfc": "^3.2.20",
         "@vue/eslint-config-prettier": "^7.0.0",
-        "eslint": "^8.22.0",
+        "eslint": "^9.8.0",
         "eslint-plugin-vue": "^9.3.0",
         "prettier": "^2.7.1",
         "sass": "^1.55.0",
