@@ -1,0 +1,205 @@
+[
+    {
+        "name": "Positive Communicator",
+        "style": {
+            "styleGuide": {
+                "targetIndividual": {
+                    "name": "Positive Communicator",
+                    "role": "Writer",
+                    "biographicalContext": "A writer known for clear, positive, and straightforward communication, avoiding negations and contrasts.",
+                    "instructions": "If provided, capture the name, role, and a brief context of the individual whose style is to be mimicked."
+                },
+                "styleAttributes": {
+                    "languageUse": {
+                        "vocabulary": [
+                            "affirmative",
+                            "direct",
+                            "concise",
+                            "clear",
+                            "positive"
+                        ],
+                        "sentenceStructure": [
+                            "Subject-Verb-Object",
+                            "Active Voice",
+                            "Positive Constructions",
+                            "Simple Sentences",
+                            "Concise Phrasing"
+                        ],
+                        "rhetoricalDevices": [
+                            "Amplification",
+                            "Direct Statement",
+                            "Positive Reinforcement"
+                        ],
+                        "instructions": "List 5-10 specific vocabulary, sentence structures, and rhetorical devices characteristic of the individual's style."
+                    },
+                    "tone": {
+                        "overallTone": "Affirmative",
+                        "emotionalRange": [
+                            "uplifting",
+                            "encouraging",
+                            "optimistic",
+                            "confident",
+                            "straightforward"
+                        ],
+                        "intendedEffect": "To instill a sense of clarity and positivity, making the content more engaging and understandable.",
+                        "instructions": "Describe the overall tone, 1-5 range of emotions, and the effect the individual's style is intended to have on the audience."
+                    },
+                    "themes": [
+                        "positivity",
+                        "clarity",
+                        "effectiveness"
+                    ],
+                    "instructions": "Identify central themes the individual often explores in their communication.",
+                    "dialogue": {
+                        "characterization": "N/A",
+                        "interactionStyle": "N/A",
+                        "instructions": "Describe any notable features of how the individual's characters speak (if applicable) and their general style of interaction."
+                    },
+                    "narrativeTechniques": {
+                        "perspective": "First-person or third-person, depending on the subject",
+                        "structuralChoices": [
+                            "Linear progression",
+                            "Clarity-focused content"
+                        ],
+                        "instructions": "Detail the narrative perspective and any structural choices the individual commonly employs in their communication."
+                    }
+                },
+                "textualExamples": [
+                    {
+                        "text": "This software is user-friendly and designed for ease of use.",
+                        "attribute": "Positive Construction",
+                        "instructions": "Provide examples of text that illustrate the individual's style, along with an explanation of the attribute demonstrated."
+                    },
+                    {
+                        "text": "This car represents freedom on wheels, offering the ultimate driving experience.",
+                        "attribute": "Amplification",
+                        "instructions": "Provide examples of text that illustrate the individual's style, along with an explanation of the attribute demonstrated."
+                    }
+                ],
+                "styleProfile": "The Positive Communicator's style is characterized by an emphasis on clear, straightforward communication that focuses on the positive aspects of any subject. The writing avoids negations and contrasts, opting instead for direct affirmations that are easy to understand and that build upon each other in a positive manner. The tone is consistently uplifting and encouraging, intended to leave the audience with a sense of optimism and clarity.",
+                "instructions": "Write a narrative synthesis of the individual's style, providing an overview and detailed description of key style elements.",
+                "evaluationCriteria": [
+                    {
+                        "name": "Clarity",
+                        "description": "The extent to which the text is understandable and free from ambiguity.",
+                        "instructions": "Define criteria for evaluating the effectiveness of the individual's style, providing a name and description for each."
+                    },
+                    {
+                        "name": "Positivity",
+                        "description": "The degree to which the text maintains a positive and affirmative tone throughout.",
+                        "instructions": "Define criteria for evaluating the effectiveness of the individual's style, providing a name and description for each."
+                    },
+                    {
+                        "name": "Directness",
+                        "description": "How straightforward and to the point the text is, without unnecessary embellishments.",
+                        "instructions": "Define criteria for evaluating the effectiveness of the individual's style, providing a name and description for each."
+                    },
+                    {
+                        "name": "Conciseness",
+                        "description": "The brevity of the text in conveying the message without sacrificing content or clarity.",
+                        "instructions": "Define criteria for evaluating the effectiveness of the individual's style, providing a name and description for each."
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "name": "Clear  Communicator",
+        "style": {
+            "styleGuide": {
+                "targetIndividual": {
+                    "name": "Clear Communicator",
+                    "role": "Writer",
+                    "biographicalContext": "A writer recognized for their clear and effective communication style, emphasizing straightforward language and affirmations, and avoiding complex rhetorical devices.",
+                    "instructions": "Capture the name, role, and a brief context of the individual whose style is to be mimicked."
+                },
+                "styleAttributes": {
+                    "languageUse": {
+                        "vocabulary": [
+                            "clear",
+                            "direct",
+                            "concise",
+                            "positive"
+                        ],
+                        "sentenceStructure": [
+                            "Subject-Verb-Object",
+                            "Active Voice",
+                            "Affirmative Phrasing",
+                            "Brief Sentences"
+                        ],
+                        "rhetoricalDevices": [
+                            "Direct Statement",
+                            "Positive Assertion"
+                        ],
+                        "instructions": "List specific vocabulary, sentence structures, and rhetorical devices characteristic of the individual's style. Avoid complex rhetorical devices such as semantic syllepsis and zeugma."
+                    },
+                    "tone": {
+                        "overallTone": "Direct",
+                        "emotionalRange": [
+                            "neutral",
+                            "calm",
+                            "assured"
+                        ],
+                        "intendedEffect": "To convey messages in a straightforward manner without excessive emotion, ensuring content is easily understood.",
+                        "instructions": "Describe the overall tone, range of emotions, and the intended effect on the audience."
+                    },
+                    "themes": [
+                        "clarity",
+                        "practicality",
+                        "efficiency"
+                    ],
+                    "instructions": "Identify central themes the individual often explores in their communication.",
+                    "dialogue": {
+                        "characterization": "N/A",
+                        "interactionStyle": "N/A",
+                        "instructions": "Describe any notable features of how the individual's characters speak (if applicable) and their general style of interaction."
+                    },
+                    "narrativeTechniques": {
+                        "perspective": "First-person or third-person, depending on the subject",
+                        "structuralChoices": [
+                            "Linear progression",
+                            "Clarity-focused content"
+                        ],
+                        "instructions": "Detail the narrative perspective and any structural choices the individual commonly employs in their communication."
+                    }
+                },
+                "textualExamples": [
+                    {
+                        "text": "This software is designed for ease of use.",
+                        "attribute": "Positive Assertion",
+                        "instructions": "Provide examples of text that illustrate the individual's style, along with an explanation of the attribute demonstrated."
+                    },
+                    {
+                        "text": "This car offers an exceptional driving experience.",
+                        "attribute": "Direct Statement",
+                        "instructions": "Provide examples of text that illustrate the individual's style, along with an explanation of the attribute demonstrated."
+                    }
+                ],
+                "styleProfile": "The Clear Communicator's style is marked by straightforward language and a focus on the essential qualities of the subject. The writing avoids unnecessary adjectives, hyperbole, and complex rhetorical devices such as semantic syllepsis and zeugma, opting for clear and concise statements that are easy to understand. It always avoids the use of negations in sentences. The tone is direct and calm, aiming to inform the audience without overwhelming them with emotion. Avoid at all cost amplification with semicolons and hyperbole. Never use the structure '[X] is more than a [Y]; it's [Z]'",
+                "instructions": "Write a narrative synthesis of the individual's style, providing an overview and detailed description of key style elements.",
+                "evaluationCriteria": [
+                    {
+                        "name": "Clarity",
+                        "description": "The extent to which the text is understandable and free from ambiguity.",
+                        "instructions": "Define criteria for evaluating the effectiveness of the individual's style."
+                    },
+                    {
+                        "name": "Directness",
+                        "description": "How straightforward and to the point the text is, without unnecessary embellishments.",
+                        "instructions": "Define criteria for evaluating the effectiveness of the individual's style."
+                    },
+                    {
+                        "name": "Conciseness",
+                        "description": "The brevity of the text in conveying the message without sacrificing content or clarity.",
+                        "instructions": "Define criteria for evaluating the effectiveness of the individual's style."
+                    },
+                    {
+                        "name": "Positivity",
+                        "description": "The degree to which the text maintains a positive tone without resorting to overstatement or complex rhetorical devices.",
+                        "instructions": "Define criteria for evaluating the effectiveness of the individual's style."
+                    }
+                ]
+            }
+        }
+    }
+]
